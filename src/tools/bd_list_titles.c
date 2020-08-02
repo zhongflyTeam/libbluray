@@ -24,7 +24,7 @@
 #include <inttypes.h>
 #include <unistd.h>
 
-#define OPTS "ahs:l"
+#define OPTS "achs:l"
 
 static void _usage(char *cmd)
 {
@@ -34,10 +34,21 @@ static void _usage(char *cmd)
 "   -s #    - Filter out titles shorter than # seconds\n"
 "   -a      - List all titles\n"
 "   -l      - Show language codes\n"
+"   -c      - Show optional chapter names\n"
 "   -h      - This message\n",
         cmd
     );
     exit(EXIT_FAILURE);
+}
+
+static void _dump_chap_names(const BLURAY_TITLE_INFO *ti)
+{
+    unsigned ii;
+    for (ii = 0; ii < ti->chapter_count; ii++) {
+        if (ti->chapters[ii].chapter_name) {
+            printf("\tChapter %2d: %s\n", ii + 1, ti->chapters[ii].chapter_name);
+        }
+    }
 }
 
 static void _print_langs(const char *tag, const BLURAY_STREAM_INFO *si, int count)
@@ -64,7 +75,7 @@ int main(int argc, char *argv[])
 {
     BLURAY *bd;
     int count, ii, opt, main_title;
-    unsigned int seconds = 0, langs = 0;
+    unsigned int seconds = 0, langs = 0, chapter_names = 0;
     unsigned int flags = TITLES_RELEVANT;
     char *bd_dir = NULL;
 
@@ -89,6 +100,9 @@ int main(int argc, char *argv[])
                 break;
             case 'l':
                 langs = 1;
+                break;
+            case 'c':
+                chapter_names = 1;
                 break;
             case 'h':
             default:
@@ -133,6 +147,9 @@ int main(int argc, char *argv[])
         );
         if (langs) {
             _dump_langs(&ti->clips[0]);
+        }
+        if (chapter_names) {
+            _dump_chap_names(ti);
         }
         bd_free_title_info(ti);
     }

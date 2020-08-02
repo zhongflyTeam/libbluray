@@ -2832,10 +2832,23 @@ static int _copy_streams(const NAV_CLIP *clip, BLURAY_STREAM_INFO **pstreams,
     return 1;
 }
 
-static BLURAY_TITLE_INFO* _fill_title_info(NAV_TITLE* title, uint32_t title_idx, uint32_t playlist)
+static BLURAY_TITLE_INFO* _fill_title_info(BLURAY *bd, NAV_TITLE* title, uint32_t title_idx, uint32_t playlist)
 {
+    const struct meta_tn *meta_tn = NULL;
     BLURAY_TITLE_INFO *title_info;
     unsigned int ii;
+
+    /* fetch optional chapter names */
+    if (bd->meta) {
+        uint32_t psr_menu_lang = bd_psr_read(bd->regs, PSR_MENU_LANG);
+        if (psr_menu_lang != 0 && psr_menu_lang != 0xffffff) {
+            const char language_code[] = {(psr_menu_lang >> 16) & 0xff, (psr_menu_lang >> 8) & 0xff, psr_menu_lang & 0xff, 0 };
+            meta_tn = meta_get_tn(bd->meta, language_code, playlist);
+        }
+        if (!meta_tn) {
+            meta_tn = meta_get_tn(bd->meta, NULL, playlist);
+        }
+    }
 
     title_info = calloc(1, sizeof(BLURAY_TITLE_INFO));
     if (!title_info) {
@@ -2857,6 +2870,9 @@ static BLURAY_TITLE_INFO* _fill_title_info(NAV_TITLE* title, uint32_t title_idx,
             title_info->chapters[ii].duration = (uint64_t)title->chap_list.mark[ii].duration * 2;
             title_info->chapters[ii].offset = (uint64_t)title->chap_list.mark[ii].title_pkt * 192L;
             title_info->chapters[ii].clip_ref = title->chap_list.mark[ii].clip_ref;
+            if (meta_tn && ii < meta_tn->num_chapter) {
+                title_info->chapters[ii].chapter_name = meta_tn->chapter_name[ii];
+            }
         }
     }
     title_info->mark_count = title->mark_list.count;
@@ -2938,10 +2954,17 @@ static BLURAY_TITLE_INFO *_get_mpls_info(BLURAY *bd, uint32_t title_idx, uint32_
         return NULL;
     }
 
+    /* fetch metadata for optional chapter names */
+    bd_mutex_lock(&bd->mutex);
+    if (!bd->meta) {
+        bd->meta = meta_parse(bd->disc);
+    }
+    bd_mutex_unlock(&bd->mutex);
+
     /* current title ? => no need to load mpls file */
     bd_mutex_lock(&bd->mutex);
     if (bd->title && bd->title->angle == angle && !strcmp(bd->title->name, mpls_name)) {
-        title_info = _fill_title_info(bd->title, title_idx, playlist);
+        title_info = _fill_title_info(bd, bd->title, title_idx, playlist);
         bd_mutex_unlock(&bd->mutex);
         return title_info;
     }
@@ -2953,7 +2976,7 @@ static BLURAY_TITLE_INFO *_get_mpls_info(BLURAY *bd, uint32_t title_idx, uint32_
         return NULL;
     }
 
-    title_info = _fill_title_info(title, title_idx, playlist);
+    title_info = _fill_title_info(bd, title, title_idx, playlist);
 
     nav_title_close(&title);
     return title_info;
@@ -4222,9 +4245,11 @@ const struct meta_dl *bd_get_meta(BLURAY *bd)
         return NULL;
     }
 
+    bd_mutex_lock(&bd->mutex);
     if (!bd->meta) {
         bd->meta = meta_parse(bd->disc);
     }
+    bd_mutex_unlock(&bd->mutex);
 
     uint32_t psr_menu_lang = bd_psr_read(bd->regs, PSR_MENU_LANG);
 

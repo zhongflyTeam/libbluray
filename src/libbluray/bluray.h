@@ -292,6 +292,9 @@ typedef struct bd_chapter {
     uint64_t    duration;  /**< duration */
     uint64_t    offset;    /**< distance from title start, bytes */
     unsigned    clip_ref;  /**< Clip reference (index to playlist clips list) */
+
+    /** Chapter name in preferred language (optional, libbluray >= 1.5.0) */
+    const char *chapter_name;
 } BLURAY_TITLE_CHAPTER;
 
 /** Playmark information */
