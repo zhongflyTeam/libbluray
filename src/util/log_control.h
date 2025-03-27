@@ -39,6 +39,12 @@ extern "C" {
 
 #include <stdint.h>
 
+#ifdef BLURAY_API_EXPORT
+#include "util/attributes.h"
+#elif !defined(BD_PUBLIC)
+#define BD_PUBLIC
+#endif
+
 /**
  * Flags for log filtering.
  */
@@ -78,21 +84,21 @@ typedef void (*BD_LOG_FUNC)(const char *msg);
  * @param handler function that will receive all enabled log and trace messages
  *
  */
-void bd_set_debug_handler(BD_LOG_FUNC handler);
+BD_PUBLIC void bd_set_debug_handler(BD_LOG_FUNC handler);
 
 /**
  * Set (global) debug mask
  *
  * @param mask combination of flags from debug_mask_enum
  */
-void bd_set_debug_mask(uint32_t mask);
+BD_PUBLIC void bd_set_debug_mask(uint32_t mask);
 
 /**
  * Get current (global) debug mask
  *
  * @return combination of flags from debug_mask_enum
  */
-uint32_t bd_get_debug_mask(void);
+BD_PUBLIC uint32_t bd_get_debug_mask(void);
 
 #ifdef __cplusplus
 }

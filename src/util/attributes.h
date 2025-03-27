@@ -34,19 +34,18 @@
 #    define BD_ATTR_PACKED
 #endif
 
+#ifdef BLURAY_API_EXPORT
 #if defined(_WIN32)
-#    if defined(__GNUC__)
-#        define BD_PUBLIC  __attribute__((dllexport))
-#        define BD_PRIVATE
-#    else
-#        define BD_PUBLIC  __declspec(dllexport)
-#        define BD_PRIVATE
-#    endif
+#    define BD_PUBLIC  __declspec(dllexport)
 #elif defined(__GNUC__) && __GNUC__ >= 4
 #    define BD_PUBLIC  __attribute__((visibility("default")))
-#    define BD_PRIVATE __attribute__((visibility("hidden")))
-#else
+#endif
+#endif
+
+#ifndef BD_PUBLIC
 #    define BD_PUBLIC
+#endif
+#ifndef BD_PRIVATE
 #    define BD_PRIVATE
 #endif
 

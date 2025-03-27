@@ -215,7 +215,7 @@ endif
 endif
 endif
 
-libbluray_la_LDFLAGS= -no-undefined -version-info $(LT_VERSION_INFO) -export-symbols-regex "^bd_"
+libbluray_la_LDFLAGS= -no-undefined -version-info $(LT_VERSION_INFO)
 libbluray_la_LIBADD= $(LIBXML2_LIBS) $(FT2_LIBS) $(FONTCONFIG_LIBS) $(LIBUDFREAD_LIBS) $(EXTRA_LIBS)
 
 noinst_HEADERS = \

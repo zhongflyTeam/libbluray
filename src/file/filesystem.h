@@ -35,6 +35,12 @@ extern "C" {
 
 #include <stdint.h>
 
+#ifdef BLURAY_API_EXPORT
+#include "util/attributes.h"
+#elif !defined(BD_PUBLIC)
+#define BD_PUBLIC
+#endif
+
 /**
  * File access
  */
@@ -172,7 +178,7 @@ typedef BD_DIR_H* (*BD_DIR_OPEN) (const char* dirname);
  * @param p function pointer
  * @return previous function pointer registered
  */
-BD_FILE_OPEN bd_register_file(BD_FILE_OPEN p);
+BD_PUBLIC BD_FILE_OPEN bd_register_file(BD_FILE_OPEN p);
 
 /**
  *  Register function pointer that will be used to open a directory
@@ -182,7 +188,7 @@ BD_FILE_OPEN bd_register_file(BD_FILE_OPEN p);
  * @param p function pointer
  * @return previous function pointer registered
  */
-BD_DIR_OPEN bd_register_dir(BD_DIR_OPEN p);
+BD_PUBLIC BD_DIR_OPEN bd_register_dir(BD_DIR_OPEN p);
 
 #ifdef __cplusplus
 }

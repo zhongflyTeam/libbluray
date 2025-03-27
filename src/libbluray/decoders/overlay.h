@@ -31,6 +31,12 @@ extern "C" {
 
 #include <stdint.h>
 
+#ifdef BLURAY_API_EXPORT
+#include "util/attributes.h"
+#elif !defined(BD_PUBLIC)
+#define BD_PUBLIC
+#endif
+
 /** Version number of the interface described in this file. */
 #define BD_OVERLAY_INTERFACE_VERSION 2
 
@@ -114,8 +120,8 @@ typedef struct bd_overlay_s {
   it needs to use bd_refcnt_inc() and bd_refcnt_dec().
 */
 
-const void *bd_refcnt_inc(const void *); /**< Hold reference-counted object. Return object or NULL on invalid object. */
-void bd_refcnt_dec(const void *);        /**< Release reference-counted object */
+BD_PUBLIC const void *bd_refcnt_inc(const void *); /**< Hold reference-counted object. Return object or NULL on invalid object. */
+BD_PUBLIC void bd_refcnt_dec(const void *);        /**< Release reference-counted object */
 
 #if 0
 BD_OVERLAY *bd_overlay_copy(const BD_OVERLAY *src)

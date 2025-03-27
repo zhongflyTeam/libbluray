@@ -108,7 +108,7 @@ BD_PRIVATE void bd_registers_free(BD_REGISTERS *);
  * @param reg  register number
  * @return value stored in register, -1 on error (invalid register number)
  */
-uint32_t bd_gpr_read(BD_REGISTERS *, unsigned int reg);
+BD_PUBLIC uint32_t bd_gpr_read(BD_REGISTERS *, unsigned int reg);
 
 /**
  *
@@ -119,7 +119,7 @@ uint32_t bd_gpr_read(BD_REGISTERS *, unsigned int reg);
  * @param val  new value for register
  * @return 0 on success, -1 on error (invalid register number)
  */
-int bd_gpr_write(BD_REGISTERS *, unsigned int reg, uint32_t val);
+BD_PUBLIC int bd_gpr_write(BD_REGISTERS *, unsigned int reg, uint32_t val);
 
 
 /*
@@ -134,7 +134,7 @@ int bd_gpr_write(BD_REGISTERS *, unsigned int reg, uint32_t val);
  * @param reg  register number
  * @return value stored in register, -1 on error (invalid register number)
  */
-uint32_t bd_psr_read(BD_REGISTERS *, unsigned int reg);
+BD_PUBLIC uint32_t bd_psr_read(BD_REGISTERS *, unsigned int reg);
 
 /**
  *
@@ -147,7 +147,7 @@ uint32_t bd_psr_read(BD_REGISTERS *, unsigned int reg);
  * @param val  new value for register
  * @return 0 on success, -1 on error (invalid register number)
  */
-int bd_psr_write(BD_REGISTERS *, unsigned int reg, uint32_t val);
+BD_PUBLIC int bd_psr_write(BD_REGISTERS *, unsigned int reg, uint32_t val);
 
 /**
  *
@@ -255,7 +255,7 @@ typedef struct {
  * @param callback  callback function pointer
  * @param handle  application-specific handle that is provided to callback function as first parameter
  */
-void bd_psr_register_cb(BD_REGISTERS *, void (*callback)(void*,const BD_PSR_EVENT*), void *cb_handle);
+BD_PUBLIC void bd_psr_register_cb(BD_REGISTERS *, void (*callback)(void*,const BD_PSR_EVENT*), void *cb_handle);
 
 /**
  *
@@ -265,7 +265,7 @@ void bd_psr_register_cb(BD_REGISTERS *, void (*callback)(void*,const BD_PSR_EVEN
  * @param callback  callback function to unregister
  * @param handle  application-specific handle that was used when callback was registered
  */
-void bd_psr_unregister_cb(BD_REGISTERS *, void (*callback)(void*,const BD_PSR_EVENT*), void *cb_handle);
+BD_PUBLIC void bd_psr_unregister_cb(BD_REGISTERS *, void (*callback)(void*,const BD_PSR_EVENT*), void *cb_handle);
 
 BD_PRIVATE int psr_init_3D(BD_REGISTERS *, int initial_mode, int force);
 

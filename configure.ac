@@ -218,6 +218,11 @@ AS_IF([test "x$with_freetype" != "xno"], [
   ])
 ])
 
+dnl symbol visibility
+CC_CHECK_CFLAGS_APPEND([-fvisibility=hidden])
+CPPFLAGS="${CPPFLAGS} -DBLURAY_API_EXPORT"
+
+dnl compiler warnings
 CC_CHECK_CFLAGS_APPEND([-Wall -Wdisabled-optimization -Wpointer-arith ]dnl
 [-Wredundant-decls -Wcast-qual -Wwrite-strings -Wtype-limits -Wundef ]dnl
 [-Wmissing-prototypes -Wshadow])
