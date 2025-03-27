@@ -21,7 +21,7 @@
 #define LIBBLURAY_ATTRIBUTES_H_
 
 #if defined(__GNUC__) && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3 ))
-#    if defined(_WIN32)
+#    if defined(_WIN32) && !defined(__clang__)
 #        define BD_ATTR_FORMAT_PRINTF(format,var) __attribute__((__format__(__gnu_printf__,format,var)))
 #    else
 #        define BD_ATTR_FORMAT_PRINTF(format,var) __attribute__((__format__(__printf__,format,var)))
