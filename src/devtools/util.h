@@ -17,6 +17,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#ifndef BLURAY_UTIL_H
+#define BLURAY_UTIL_H
+
 #include <stdint.h>
 
 #include "util/attributes.h"
@@ -41,3 +44,4 @@
 
 void indent_printf(int level, const char *fmt, ...) BD_ATTR_FORMAT_PRINTF(2,3);
 
+#endif // BLURAY_UTIL_H

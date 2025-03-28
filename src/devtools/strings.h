@@ -17,6 +17,9 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+#ifndef BLURAY_STRINGS_H
+#define BLURAY_STRINGS_H
+
 typedef struct {
     int value;
     const char *str;
@@ -120,3 +123,5 @@ _lookup_str(const VALUE_MAP *map, int val)
     }
     return "?";
 }
+
+#endif // BLURAY_STRINGS_H
