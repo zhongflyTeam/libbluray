@@ -114,9 +114,11 @@ endif
 
 check_headers = [
     'dirent.h',
+    'dlfcn.h',
     'mntent.h',
     'strings.h',
     'sys/time.h',
+    'sys/dl.h',
 ]
 
 foreach h : check_headers
@@ -153,7 +155,6 @@ else
         libdl_dependency = cc.find_library('dl')
     endif
     thread_dependency = dependency('threads')
-    cdata.set('HAVE_DLFCN_H', 1)
     cdata.set('HAVE_PTHREAD_H', 1)
 endif
 

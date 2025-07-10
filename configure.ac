@@ -147,7 +147,7 @@ LT_INIT
 dnl required headers
 AC_CHECK_HEADERS([stdarg.h sys/types.h dirent.h errno.h libgen.h malloc.h])
 AC_CHECK_HEADERS([stdlib.h mntent.h inttypes.h strings.h])
-AC_CHECK_HEADERS([sys/time.h time.h mntent.h])
+AC_CHECK_HEADERS([dlfcn.h sys/dl.h sys/time.h time.h mntent.h])
 
 dnl required structures
 AC_STRUCT_DIRENT_D_TYPE
