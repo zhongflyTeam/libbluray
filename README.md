@@ -5,9 +5,9 @@
 
 ## Goals and features
 
-This research project is developed by an **international team** of developers from **Doom9**.
+This research project is developed by an **international team** of developers from **Doom9** and **VideoLAN**.
 
-The library integrates navigation, playlist parsing, menus and BD-J.
+The library integrates navigation, playlist parsing, menus and BD-J menus.
 
 Most commercial Blu-Ray are protected by **AACS** or **BD+** technologies and this library is not enough to playback those discs.
 
@@ -15,7 +15,7 @@ People interested in AACS technologies should have a look at [libaacs](https://c
 
 People interested in BD+ technologies should have a look at [libbdplus](https://code.videolan.org/videolan/libbdplus).
 
-## Licence
+## License
 
 **Libbluray** is released under a Free Software license, LGPL, ensuring it will stay free.
 A copy of LGPL is available [here](https://code.videolan.org/videolan/libbluray/-/blob/master/COPYING)
@@ -65,3 +65,14 @@ You can discuss about libbluray on the [libbluray-devel mailing list](https://ma
 For support or more informations, look [here](https://www.videolan.org/developers/libbluray.html)
 
 All documentation about libbluray is available [here](https://videolan.videolan.me/libbluray/)
+
+
+# Compile
+
+1. Install [Meson](https://mesonbuild.com/) (0.60 or higher), [Ninja](https://ninja-build.org/)
+2. Install libxml2-dev, freetype2-dev, fontconfig-dev *(on Unixes)*
+3. Install Java JDK and releated pacakges to activate BD-J menus
+4. Run `mkdir build && cd build` to create a build directory and enter it
+5. Run `meson setup ..` to configure meson, add `--default-library=static` if static linking is desired
+6. Run `ninja` to compile
+
