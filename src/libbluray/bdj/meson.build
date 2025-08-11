@@ -10,8 +10,12 @@ if ant.found() and add_languages('java', native: false, required: get_option('bd
     if get_option('java9') and bdj_type == 'j2se'
         if javac_version.version_compare('>= 18.0')
             java_src_version = '1.8'
-        else
+        elif javac_version.version_compare('>=12.0')
             java_src_version = '1.7'
+        elif javac_version.version_compare('>=9.0')
+            java_src_version = '1.6'
+        else
+            java_src_version = '1.5' #maybe java_version_bdj=1.4 in that case?
         endif
     endif
     java_summary = { 'Build BD-J JAR': true,
