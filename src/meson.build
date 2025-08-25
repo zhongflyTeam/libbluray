@@ -65,6 +65,12 @@ if host_machine.system() == 'windows'
         'file/file_win32.c',
         'file/mount.c',
     )
+
+    if freetype_dependency.found()
+        # for EnumFontFamiliesExW
+        extra_dependencies += cc.find_library('gdi32')
+    endif
+
 elif host_machine.system() == 'darwin'
     libbluray_src += files(
         'file/dir_posix.c',
