@@ -219,7 +219,7 @@ add_project_link_arguments(cc.get_supported_link_arguments(optional_link_argumen
 add_project_arguments(test_args, language: 'c')
 
 # Generate config.h
-config_h_target = configure_file(output: 'config.h', configuration: cdata)
+configure_file(output: 'config.h', configuration: cdata)
 
 
 # Include subdir meson.build files

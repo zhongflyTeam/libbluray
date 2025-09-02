@@ -29,7 +29,7 @@ endif
 
 awt_src = bdj_type == 'j2me' ? 'java-j2me' : 'java-j2se:java-build-support'
 
-jar = custom_target('bdj-jar',
+custom_target('bdj-jar',
     command: [ant, '-f', files('build.xml'),
               '-Dbuild=' + meson.project_build_root() / '@PRIVATE_DIR@',
               '-Ddist=' + meson.current_build_dir(),
