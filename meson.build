@@ -145,6 +145,14 @@ if cc.has_function('dladdr', prefix: '#include <dlfcn.h>', args: [test_args, dla
     cdata.set('HAVE_DLADDR', 1)
 endif
 
+if not cc.has_function('getopt', prefix: '#include <unistd.h>', args: test_args)
+    getopt_dependency = declare_dependency(
+        sources: 'src/compat/getopt.c',
+        include_directories: 'src/compat/include')
+else
+    getopt_dependency = []
+endif
+
 # External dependencies and libraries
 
 if host_machine.system() == 'windows'

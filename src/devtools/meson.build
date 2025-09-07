@@ -8,11 +8,11 @@ if get_option('enable_devtools')
         include_directories: libbluray_inc_dirs)
 
     executable('bdj_test', 'bdj_test.c',
-        dependencies: libbluray_dep,
+        dependencies: [libbluray_dep, getopt_dependency],
         include_directories: libbluray_inc_dirs)
 
     executable('clpi_dump', ['clpi_dump.c', 'util.c'],
-        dependencies: libbluray_dep,
+        dependencies: [libbluray_dep, getopt_dependency],
         include_directories: libbluray_inc_dirs)
 
     executable('hdmv_test', 'hdmv_test.c',
@@ -23,8 +23,10 @@ if get_option('enable_devtools')
         dependencies: libbluray_dep,
         include_directories: libbluray_inc_dirs)
 
+    # Doesn't build on MSVC due to missing dirent.h and libgen.h
     executable('mpls_dump', ['mpls_dump.c', 'util.c'],
-        dependencies: libbluray_dep,
+        dependencies: [libbluray_dep, getopt_dependency],
+        build_by_default: cdata.has('HAVE_DIRENT_H'),
         include_directories: libbluray_inc_dirs)
 
 endif
