@@ -239,6 +239,8 @@ subdir('src/devtools')
 
 subdir('src/examples')
 
+subdir('src/tools')
+
 subdir('doc')
 
 summary(java_summary + {
