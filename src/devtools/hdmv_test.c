@@ -188,6 +188,7 @@ int main(int argc, char *argv[])
         printf("Requested title %d\n", title);
     }
 
+    bd_set_debug_mask(DBG_CRIT);
     if (verbose) {
         printf("Enabling verbose debug\n");
         bd_set_debug_mask(bd_get_debug_mask() | DBG_HDMV | DBG_BLURAY);
