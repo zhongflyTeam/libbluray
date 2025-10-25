@@ -157,6 +157,10 @@ public class BDFramePeer extends BDComponentPeer implements FramePeer
         return true;
     }
 
+    public GraphicsConfiguration getAppropriateGraphicsConfiguration(GraphicsConfiguration gc) {
+        return gc;
+    }
+
     //
     // ComponentPeer
     //
