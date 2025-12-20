@@ -1,4 +1,10 @@
-2025-08-18
+2025-12-xx: Version 1.4.1
+- Fix linking on Windows with Freetype enabled
+- Improve compilation with MSVC
+- Cleaning and improvements in Meson build files
+- Fix build with Java 23 for BD-J
+
+2025-08-18: Version 1.4.0
 - Switch build system to Meson.
 - Require libudfread 1.2.0.
 - Use visibility attributes for exported symbols.
