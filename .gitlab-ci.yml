@@ -75,8 +75,10 @@ pages:
         - docker
         - amd64
     script:
-        - doxygen doc/doxygen-config
-        - mv doc/doxygen/html public
+        - meson setup build -Denable_docs=true
+        - meson compile -C build
+        - doxygen build/doc/Doxyfile
+        - mv build/doc/html public
     artifacts:
         paths:
             - public
