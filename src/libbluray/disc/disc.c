@@ -698,13 +698,8 @@ char *disc_property_get(BD_DISC *p, const char *property)
  * streams
  */
 
-BD_FILE_H *disc_open_stream(BD_DISC *disc, const char *file)
+static BD_FILE_H *_open_stream(BD_DISC *disc, BD_FILE_H *fp, const char *file)
 {
-    BD_FILE_H *fp = disc_open_file(disc, "BDMV" DIR_SEP "STREAM", file);
-    if (!fp) {
-        return NULL;
-    }
-
     if (disc->dec) {
         BD_FILE_H *st = dec_open_stream(disc->dec, fp, atoi(file));
         if (st) {
@@ -714,6 +709,17 @@ BD_FILE_H *disc_open_stream(BD_DISC *disc, const char *file)
 
     return fp;
 }
+
+BD_FILE_H *disc_open_stream(BD_DISC *disc, const char *file)
+{
+    BD_FILE_H *fp = disc_open_file(disc, "BDMV" DIR_SEP "STREAM", file);
+
+    return fp ? _open_stream(disc, fp, file) : fp;
+}
+
+/*
+ *
+ */
 
 const uint8_t *disc_get_data(BD_DISC *disc, int type)
 {
