@@ -50,6 +50,8 @@ import javax.media.TimeBase;
 import javax.media.TransitionEvent;
 import javax.media.protocol.DataSource;
 
+import org.davic.media.MediaPresentedEvent;
+
 import javax.tv.locator.Locator;
 import javax.tv.service.selection.ServiceContentHandler;
 
@@ -522,6 +524,8 @@ public abstract class BDHandler implements Player, ServiceContentHandler {
             if (error == null) {
                 state = Started;
                 notifyListeners(new StartEvent(this, Prefetched, Started, Started, at, getMediaTime()));
+                // Send MediaPresentedEvent after StartEvent - some discs rely on this to show menus
+                notifyListeners(new MediaPresentedEvent(this));
             } else {
                 notifyListeners(error);
                 return false;
