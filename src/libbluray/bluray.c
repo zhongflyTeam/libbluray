@@ -572,7 +572,40 @@ static void _init_textst_timer(BLURAY *bd)
 
 static uint32_t _compressed_mask(BD_UO_MASK mask)
 {
-    return mask.menu_call | (mask.title_search << 1);
+    uint32_t value = 0x0;
+#define UO_MASK_VALUE(v, f)  ((!!(mask.f)) * (BLURAY_UO_ ## v))
+    value |= UO_MASK_VALUE(MENU_CALL,                           menu_call);
+    value |= UO_MASK_VALUE(TITLE_SEARCH,                        title_search);
+    value |= UO_MASK_VALUE(CHAPTER_SEARCH,                      chapter_search);
+    value |= UO_MASK_VALUE(TIME_SEARCH_MASK,                    time_search);
+    value |= UO_MASK_VALUE(SKIP_TO_NEXT_POINT_MASK,             skip_to_next_point);
+    value |= UO_MASK_VALUE(SKIP_BACK_TO_PREVIOUS_POINT_MASK,    skip_to_prev_point);
+    value |= UO_MASK_VALUE(STOP_MASK,                           stop);
+    value |= UO_MASK_VALUE(PAUSE_ON_MASK,                       pause_on);
+    value |= UO_MASK_VALUE(STILL_OFF_MASK,                      still_off);
+    value |= UO_MASK_VALUE(FORWARD_PLAY_MASK,                   forward);
+    value |= UO_MASK_VALUE(BACKWARD_PLAY_MASK,                  backward);
+    value |= UO_MASK_VALUE(RESUME_MASK,                         resume);
+    value |= UO_MASK_VALUE(MOVE_UP_SELECTED_BUTTON_MASK,        move_up);
+    value |= UO_MASK_VALUE(MOVE_DOWN_SELECTED_BUTTON_MASK,      move_down);
+    value |= UO_MASK_VALUE(MOVE_LEFT_SELECTED_BUTTON_MASK,      move_left);
+    value |= UO_MASK_VALUE(MOVE_RIGHT_SELECTED_BUTTON_MASK,     move_right);
+    value |= UO_MASK_VALUE(SELECT_BUTTON_MASK,                  select);
+    value |= UO_MASK_VALUE(ACTIVATE_BUTTON_MASK,                activate);
+    value |= UO_MASK_VALUE(SELECT_AND_ACTIVATE_MASK,            select_and_activate);
+    value |= UO_MASK_VALUE(PRIMARY_AUDIO_CHANGE_MASK,           primary_audio_change);
+    value |= UO_MASK_VALUE(ANGLE_CHANGE_MASK,                   angle_change);
+    value |= UO_MASK_VALUE(POPUP_ON_MASK,                       popup_on);
+    value |= UO_MASK_VALUE(POPUP_OFF_MASK,                      popup_off);
+    value |= UO_MASK_VALUE(PG_TEXTST_ENABLE_DISABLE_MASK,       pg_enable_disable);
+    value |= UO_MASK_VALUE(PG_TEXTST_CHANGE_MASK,               pg_change);
+    value |= UO_MASK_VALUE(SECONDARY_VIDEO_ENABLE_DISABLE_MASK, secondary_video_enable_disable);
+    value |= UO_MASK_VALUE(SECONDARY_VIDEO_CHANGE_MASK,         secondary_video_change);
+    value |= UO_MASK_VALUE(SECONDARY_AUDIO_ENABLE_DISABLE_MASK, secondary_audio_enable_disable);
+    value |= UO_MASK_VALUE(SECONDARY_AUDIO_CHANGE_MASK,         secondary_audio_change);
+    value |= UO_MASK_VALUE(PIP_PG_TEXTST_CHANGE_MASK,           pip_pg_change);
+#undef UO_MASK_VALUE
+    return value;
 }
 
 static void _update_uo_mask(BLURAY *bd)

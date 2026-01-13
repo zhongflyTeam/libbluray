@@ -877,9 +877,37 @@ typedef struct {
 #define BLURAY_KIT_SEC_VIDEO     0x200    /**< BD-J requests to handle "Sec. Video" UO    */
 #define BLURAY_KIT_PG_TEXTST     0x400    /**< BD-J requests to handle "Subtitle" UO      */
 
-/* BD_EVENT_UO_MASK flags */
-#define BLURAY_UO_MENU_CALL      0x1      /**< "Menu Call" masked (not allowed)    */
-#define BLURAY_UO_TITLE_SEARCH   0x2      /**< "Title Search" masked (not allowed) */
+/* BD_EVENT_UO_MASK_CHANGED flags */
+#define BLURAY_UO_MENU_CALL                           0x1        /**< "Menu Call" masked (not allowed)                            */
+#define BLURAY_UO_TITLE_SEARCH                        0x2        /**< "Title Search" masked (not allowed)                         */
+#define BLURAY_UO_CHAPTER_SEARCH                      0x4        /**< "Chapter Search" masked (not allowed)                       */
+#define BLURAY_UO_TIME_SEARCH_MASK                    0x8        /**< "Time Search" masked (not allowed)                          */
+#define BLURAY_UO_SKIP_TO_NEXT_POINT_MASK             0x10       /**< "Skip to Next Point" masked (not allowed)                   */
+#define BLURAY_UO_SKIP_BACK_TO_PREVIOUS_POINT_MASK    0x20       /**< "Skip Back to Previous Point" masked (not allowed)          */
+#define BLURAY_UO_STOP_MASK                           0x40       /**< "Stop" masked (not allowed)                                 */
+#define BLURAY_UO_PAUSE_ON_MASK                       0x80       /**< "Pause On" masked (not allowed)                             */
+#define BLURAY_UO_STILL_OFF_MASK                      0x100      /**< "Still Off" masked (not allowed)                            */
+#define BLURAY_UO_FORWARD_PLAY_MASK                   0x200      /**< "Forward Play" masked (not allowed)                         */
+#define BLURAY_UO_BACKWARD_PLAY_MASK                  0x400      /**< "Backward Play" masked (not allowed)                        */
+#define BLURAY_UO_RESUME_MASK                         0x800      /**< "Resume" masked (not allowed)                               */
+#define BLURAY_UO_MOVE_UP_SELECTED_BUTTON_MASK        0x1000     /**< "Move Up Selected Button" masked (not allowed)              */
+#define BLURAY_UO_MOVE_DOWN_SELECTED_BUTTON_MASK      0x2000     /**< "Move Down Selected Button" masked (not allowed)            */
+#define BLURAY_UO_MOVE_LEFT_SELECTED_BUTTON_MASK      0x4000     /**< "Move Left Selected Button" masked (not allowed)            */
+#define BLURAY_UO_MOVE_RIGHT_SELECTED_BUTTON_MASK     0x8000     /**< "Move Right Selected Button" masked (not allowed)           */
+#define BLURAY_UO_SELECT_BUTTON_MASK                  0x10000    /**< "Select Button" masked (not allowed)                        */
+#define BLURAY_UO_ACTIVATE_BUTTON_MASK                0x20000    /**< "Activate Button" masked (not allowed)                      */
+#define BLURAY_UO_SELECT_AND_ACTIVATE_MASK            0x40000    /**< "Select Button and Activate" masked (not allowed)           */
+#define BLURAY_UO_PRIMARY_AUDIO_CHANGE_MASK           0x80000    /**< "Primary Audio Stream Number Change" masked (not allowed)   */
+#define BLURAY_UO_ANGLE_CHANGE_MASK                   0x100000   /**< "Angle Number Change" masked (not allowed)                  */
+#define BLURAY_UO_POPUP_ON_MASK                       0x200000   /**< "PopUp On" masked (not allowed)                             */
+#define BLURAY_UO_POPUP_OFF_MASK                      0x400000   /**< "PopUp Off" masked (not allowed)                            */
+#define BLURAY_UO_PG_TEXTST_ENABLE_DISABLE_MASK       0x800000   /**< "PG textST Enable Disable" masked (not allowed)             */
+#define BLURAY_UO_PG_TEXTST_CHANGE_MASK               0x1000000  /**< "PG textST Stream Number Change" masked (not allowed)       */
+#define BLURAY_UO_SECONDARY_VIDEO_ENABLE_DISABLE_MASK 0x2000000  /**< "Secondary Video Enable Disable" masked (not allowed)       */
+#define BLURAY_UO_SECONDARY_VIDEO_CHANGE_MASK         0x4000000  /**< "Secondary Video Stream Number Change" masked (not allowed) */
+#define BLURAY_UO_SECONDARY_AUDIO_ENABLE_DISABLE_MASK 0x8000000  /**< "Secondary Audio Enable Disable" masked (not allowed)       */
+#define BLURAY_UO_SECONDARY_AUDIO_CHANGE_MASK         0x10000000 /**< "Secondary Audio Stream Number Change" masked (not allowed) */
+#define BLURAY_UO_PIP_PG_TEXTST_CHANGE_MASK           0x20000000 /**< "PiP PG textST Stream Number Change" masked (not allowed)   */
 
 /**
  *
