@@ -28,7 +28,30 @@ public class TitleImpl implements Title {
     public PlayList[] getPlayLists() {
         if (bdjo == null)
             return new PlayList[0];
-        String[] playlistNames = bdjo.getAccessiblePlaylists().getPlayLists();
+       
+        org.videolan.bdjo.PlayListTable plt = bdjo.getAccessiblePlaylists();
+        
+        // If accessToAll flag is set, enumerate all playlists on the disc
+        if (plt.isAccessToAll()) {
+            String[] files = Libbluray.listBdFiles("BDMV" + java.io.File.separator + "PLAYLIST", false);
+            if (files == null) {
+                return new PlayList[0];
+            }
+            
+            java.util.Vector allPlaylists = new java.util.Vector();
+            for (int i = 0; i < files.length; i++) {
+                String file = files[i];
+                if (file.toLowerCase().endsWith(".mpls")) {
+                    String name = file.substring(0, file.length() - 5);
+                    allPlaylists.addElement(new PlayListImpl(name, this));
+                }
+            }
+            PlayList[] playlists = new PlayList[allPlaylists.size()];
+            allPlaylists.copyInto(playlists);
+            return playlists;
+        }
+        
+        String[] playlistNames = plt.getPlayLists();
         PlayList[] playlists = new PlayList[playlistNames.length];
         for (int i = 0; i < playlistNames.length; i++)
             playlists[i] = new PlayListImpl(playlistNames[i], this);
