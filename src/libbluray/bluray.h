@@ -716,13 +716,22 @@ typedef enum {
     BLURAY_PLAYER_SETTING_TEXT_CAP       = 30,    /**< Text Subtitle capability.    Bit mask. */
     BLURAY_PLAYER_SETTING_PLAYER_PROFILE = 31,    /**< Player profile and version. */
 
-    BLURAY_PLAYER_SETTING_DECODE_PG          = 0x100, /**< Enable/disable PG (subtitle) decoder. Integer. Default: disabled. */
-    BLURAY_PLAYER_SETTING_PERSISTENT_STORAGE = 0x101, /**< Enable/disable BD-J persistent storage. Integer. Default: enabled. */
+    BLURAY_PLAYER_SETTING_DECODE_PG            = 0x100, /**< Enable/disable PG (subtitle) decoder. Integer. Default: disabled. */
+    BLURAY_PLAYER_SETTING_PERSISTENT_STORAGE   = 0x101, /**< Enable/disable BD-J persistent storage. Integer. Default: enabled. */
+    BLURAY_PLAYER_SETTING_UO_RESTRICTION_LEVEL = 0x102, /**< Set User Operations (UO) restriction mask enforcement level. bd_player_setting_uo_restriction_level value. Default: BLURAY_PLAYER_SETTING_UO_RESTRICTION_RELAXED. */
 
     BLURAY_PLAYER_PERSISTENT_ROOT            = 0x200, /**< Root path to the BD_J persistent storage location. String. */
     BLURAY_PLAYER_CACHE_ROOT                 = 0x201, /**< Root path to the BD_J cache storage location. String. */
     BLURAY_PLAYER_JAVA_HOME                  = 0x202, /**< Location of JRE. String. Default: NULL (autodetect). */
 } bd_player_setting;
+
+/** Player User Operation (UO) restriction mask enforcement level. */
+typedef enum {
+    BLURAY_PLAYER_SETTING_UO_RESTRICTION_DISABLED  =  0, /**< Executes all UOs unconditionally. May break the playback. */
+    BLURAY_PLAYER_SETTING_UO_RESTRICTION_RELAXED   =  5, /**< Allows most UOs, performs some sanity checks to reduce playback issues. */
+    BLURAY_PLAYER_SETTING_UO_RESTRICTION_SAFE      = 10, /**< Mostly compliant, however allows some UOs which should not cause playback issues. */
+    BLURAY_PLAYER_SETTING_UO_RESTRICTION_COMPLIANT = 20, /**< Compliant UO restriction enforcement. */
+} bd_player_setting_uo_restriction_level;
 
 /**
  *

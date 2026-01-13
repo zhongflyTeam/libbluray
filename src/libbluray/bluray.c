@@ -143,6 +143,7 @@ struct bluray {
      */
     uint8_t         end_of_playlist; /* 1 - reached. 3 - processed . */
     uint8_t         app_scr;         /* 1 if application provides presentation timetamps */
+    uint8_t         uo_restriction_level; /* 0 to ignore UO restrictions */
 
     /* HDMV */
     HDMV_VM        *hdmv_vm;
@@ -1508,6 +1509,8 @@ BLURAY *bd_init(void)
         X_FREE(bd);
         return NULL;
     }
+
+    bd->uo_restriction_level = BLURAY_PLAYER_SETTING_UO_RESTRICTION_RELAXED;
 
     bd_mutex_init(&bd->mutex);
     bd_mutex_init(&bd->argb_buffer_mutex);
@@ -2985,6 +2988,18 @@ int bd_set_player_setting(BLURAY *bd, uint32_t idx, uint32_t value)
             return 0;
         }
         bd->bdj_config.no_persistent_storage = !value;
+        return 1;
+    }
+
+    if (idx == BLURAY_PLAYER_SETTING_UO_RESTRICTION_LEVEL) {
+        if (BLURAY_PLAYER_SETTING_UO_RESTRICTION_COMPLIANT < value) {
+            BD_DEBUG(DBG_BLURAY | DBG_CRIT, "Invalid UO restriction level\n");
+            return 0;
+        }
+
+        bd_mutex_lock(&bd->mutex);
+        bd->uo_restriction_level = value;
+        bd_mutex_unlock(&bd->mutex);
         return 1;
     }
 
