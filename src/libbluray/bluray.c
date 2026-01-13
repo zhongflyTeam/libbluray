@@ -1227,7 +1227,7 @@ void bd_set_bdj_uo_mask(BLURAY *bd, unsigned mask)
 
 uint64_t bd_get_uo_mask(BLURAY *bd)
 {
-    /* internal function. Used by BD-J. */
+    /* internal function. Used by BD-J (and UO masking checks). */
     union {
       uint64_t u64;
       BD_UO_MASK mask;
@@ -1238,6 +1238,11 @@ uint64_t bd_get_uo_mask(BLURAY *bd)
     //bd_mutex_unlock(&bd->mutex);
 
     return mask.u64;
+}
+
+static int _is_uo_masked(BLURAY *bd, bd_uo_mask_index_e mask_index)
+{
+    return (bd->title_type != title_undef) && !!(bd_get_uo_mask(bd) & (1ull << mask_index));
 }
 
 void bd_set_bdj_kit(BLURAY *bd, int mask)
@@ -1277,6 +1282,8 @@ void bd_select_rate(BLURAY *bd, float rate, int reason)
     }
 }
 
+static int64_t _seek_time(BLURAY *bd, uint64_t tick, uint8_t is_uo_mask_checked);
+
 int bd_bdj_seek(BLURAY *bd, int playitem, int playmark, int64_t time)
 {
     bd_mutex_lock(&bd->mutex);
@@ -1288,7 +1295,7 @@ int bd_bdj_seek(BLURAY *bd, int playitem, int playmark, int64_t time)
         bd_seek_mark(bd, playmark);
     }
     if (time >= 0) {
-        bd_seek_time(bd, time);
+        _seek_time(bd, time, 0);
     }
 
     bd_mutex_unlock(&bd->mutex);
@@ -1750,7 +1757,7 @@ static void _change_angle(BLURAY *bd)
     }
 }
 
-int64_t bd_seek_time(BLURAY *bd, uint64_t tick)
+static int64_t _seek_time(BLURAY *bd, uint64_t tick, uint8_t is_uo_mask_checked)
 {
     uint32_t clip_pkt, out_pkt;
     const NAV_CLIP *clip;
@@ -1760,9 +1767,18 @@ int64_t bd_seek_time(BLURAY *bd, uint64_t tick)
         return bd->s_pos;
     }
 
-    tick /= 2;
+    tick /= 2; // Convert to 45kHz clock ticks
 
-    bd_mutex_lock(&bd->mutex);
+    /* Check UO mask */
+    if (is_uo_mask_checked) {
+        const bd_uo_mask_index_e uo_mask_idx = UO_MASK_TIME_SEARCH_MASK_INDEX;
+
+        if (_is_uo_masked(bd, uo_mask_idx)) {
+            BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bd_seek_time(%" PRIu64 ") UO %d restricted\n", tick, uo_mask_idx);
+            _bdj_event(bd, BDJ_EVENT_UO_MASKED, uo_mask_idx);
+            return -1;
+        }
+    }
 
     if (bd->title &&
         tick < bd->title->duration) {
@@ -1775,12 +1791,23 @@ int64_t bd_seek_time(BLURAY *bd, uint64_t tick)
         _seek_internal(bd, clip, out_pkt, clip_pkt);
 
     } else {
-        BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bd_seek_time(%u) failed\n", (unsigned int)tick);
+        BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bd_seek_time(%" PRIu64 ") failed\n", tick);
     }
+
+    return bd->s_pos;
+}
+
+int64_t bd_seek_time(BLURAY *bd, uint64_t tick)
+{
+    int64_t ret = 0;
+
+    bd_mutex_lock(&bd->mutex);
+
+    ret = _seek_time(bd, tick, BLURAY_PLAYER_SETTING_UO_RESTRICTION_SAFE <= bd->uo_restriction_level);
 
     bd_mutex_unlock(&bd->mutex);
 
-    return bd->s_pos;
+    return ret;
 }
 
 uint64_t bd_tell_time(BLURAY *bd)
@@ -1808,28 +1835,42 @@ uint64_t bd_tell_time(BLURAY *bd)
 
 int64_t bd_seek_chapter(BLURAY *bd, unsigned chapter)
 {
+    int is_uo_mask_checked;
     uint32_t clip_pkt, out_pkt;
     const NAV_CLIP *clip;
+    int64_t ret_pos;
 
     bd_mutex_lock(&bd->mutex);
+    is_uo_mask_checked = (BLURAY_PLAYER_SETTING_UO_RESTRICTION_SAFE < bd->uo_restriction_level);
 
-    if (bd->title &&
-        chapter < bd->title->chap_list.count) {
+    ret_pos = bd->s_pos; // Return current position by default
+    if (bd->title && chapter < bd->title->chap_list.count) {
+        /* Check chapter jump direction for UO restriction */
+        const bd_uo_mask_index_e uo_mask_idx = UO_MASK_CHAPTER_SEARCH_INDEX;
 
         _change_angle(bd);
 
-        // Find the closest access unit to the requested position
-        clip = nav_chapter_search(bd->title, chapter, &clip_pkt, &out_pkt);
+        if (is_uo_mask_checked && _is_uo_masked(bd, uo_mask_idx)) {
+            BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bd_seek_chapter(%u) UO %d restricted\n", chapter, uo_mask_idx);
+            _bdj_event(bd, BDJ_EVENT_UO_MASKED, uo_mask_idx);
+            ret_pos = -1;
+        } else {
+            /* Seek chapter */
+            _change_angle(bd);
 
-        _seek_internal(bd, clip, out_pkt, clip_pkt);
+            // Find the closest access unit to the requested position
+            clip = nav_chapter_search(bd->title, chapter, &clip_pkt, &out_pkt);
 
+            _seek_internal(bd, clip, out_pkt, clip_pkt);
+            ret_pos = bd->s_pos; // Update
+        }
     } else {
         BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bd_seek_chapter(%u) failed\n", chapter);
     }
 
     bd_mutex_unlock(&bd->mutex);
 
-    return bd->s_pos;
+    return ret_pos;
 }
 
 int64_t bd_chapter_pos(BLURAY *bd, unsigned chapter)
@@ -2621,13 +2662,24 @@ uint32_t bd_get_current_title(BLURAY *bd)
     return bd->title_idx;
 }
 
-static int _bd_select_angle(BLURAY *bd, unsigned angle)
+static int _bd_select_angle(BLURAY *bd, unsigned angle, uint8_t is_uo_mask_checked)
 {
     unsigned orig_angle;
 
     if (bd->title == NULL) {
         BD_DEBUG(DBG_BLURAY | DBG_CRIT, "Can't select angle: title not yet selected!\n");
         return 0;
+    }
+
+    /* Check UO mask */
+    if (is_uo_mask_checked) {
+        const bd_uo_mask_index_e uo_mask_idx = UO_MASK_ANGLE_CHANGE_MASK_INDEX;
+
+        if (_is_uo_masked(bd, uo_mask_idx)) {
+            BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bd_select_angle(%u) UO %d restricted\n", angle, uo_mask_idx);
+            _bdj_event(bd, BDJ_EVENT_UO_MASKED, uo_mask_idx);
+            return 0;
+        }
     }
 
     orig_angle = bd->title->angle;
@@ -2651,9 +2703,11 @@ static int _bd_select_angle(BLURAY *bd, unsigned angle)
 int bd_select_angle(BLURAY *bd, unsigned angle)
 {
     int result;
+
     bd_mutex_lock(&bd->mutex);
-    result = _bd_select_angle(bd, angle);
+    result = _bd_select_angle(bd, angle, BLURAY_PLAYER_SETTING_UO_RESTRICTION_COMPLIANT <= bd->uo_restriction_level);
     bd_mutex_unlock(&bd->mutex);
+
     return result;
 }
 
@@ -3061,18 +3115,85 @@ int bd_set_player_setting_str(BLURAY *bd, uint32_t idx, const char *s)
     }
 }
 
-void bd_select_stream(BLURAY *bd, uint32_t stream_type, uint32_t stream_id, uint32_t enable_flag)
+static int _select_audio_stream(BLURAY *bd, uint32_t stream_id, int is_checked_uo_mask)
 {
+    /* Check Primary Audio Stream Number Change UO */
+    if (is_checked_uo_mask) {
+        const bd_uo_mask_index_e uo_mask_idx = UO_MASK_PRIMARY_AUDIO_CHANGE_MASK_INDEX;
+
+        if (_is_uo_masked(bd, uo_mask_idx)) {
+            BD_DEBUG(DBG_BLURAY | DBG_CRIT, "_select_audio_stream(%" PRIu32 ") UO %d restricted\n",
+                stream_id, uo_mask_idx);
+            _bdj_event(bd, BDJ_EVENT_UO_MASKED, uo_mask_idx);
+            return 0;
+        }
+    }
+
+    bd_psr_write(bd->regs, PSR_PRIMARY_AUDIO_ID, stream_id & 0xff);
+    return 1;
+}
+
+static int _select_pg_textst_stream(BLURAY *bd, uint32_t stream_id, uint32_t enable_flag, int is_checked_uo_mask)
+{
+    uint32_t psr_initial_value = 0x0;
+    uint32_t psr_update_value = 0x0;
+    uint32_t psr_update_mask = 0x0;
+
+    /* Get initial PSR value to check for changes */
+    psr_initial_value = bd_psr_read(bd->regs, PSR_PG_STREAM);
+
+    /* Check PG textST Enable Disable UO */
+    if (!enable_flag != !(psr_initial_value & 0x80000000)) {
+        const bd_uo_mask_index_e uo_mask_idx = UO_MASK_PG_TEXTST_ENABLE_DISABLE_MASK_INDEX;
+
+        if (is_checked_uo_mask && _is_uo_masked(bd, uo_mask_idx)) {
+            BD_DEBUG(DBG_BLURAY | DBG_CRIT, "_select_pg_textst_stream(%" PRIu32 ", %" PRIu32 ") UO %d restricted\n",
+                stream_id, enable_flag, uo_mask_idx);
+            _bdj_event(bd, BDJ_EVENT_UO_MASKED, uo_mask_idx);
+        } else {
+            // Enable/Disable PSR value
+            psr_update_value |= (!!enable_flag) << 31;
+            psr_update_mask  |= 0x80000000;
+        }
+    }
+
+    /* Check PG textST Stream Number Change UO */
+    if (stream_id != (psr_initial_value & 0xfff)) {
+        const bd_uo_mask_index_e uo_mask_idx = UO_MASK_PG_TEXTST_CHANGE_MASK_INDEX;
+
+        if (is_checked_uo_mask && _is_uo_masked(bd, uo_mask_idx)) {
+            BD_DEBUG(DBG_BLURAY | DBG_CRIT, "_select_pg_textst_stream(%" PRIu32 ", %" PRIu32 ") UO %d restricted\n",
+                stream_id, enable_flag, uo_mask_idx);
+            _bdj_event(bd, BDJ_EVENT_UO_MASKED, uo_mask_idx);
+        } else {
+            psr_update_value |= stream_id & 0xfff;
+            psr_update_mask  |= 0xfff;
+        }
+    }
+
+    if (psr_update_mask) {
+        bd_psr_write_bits(bd->regs, PSR_PG_STREAM, psr_update_value, psr_update_mask);
+    }
+
+    return !!psr_update_mask;
+}
+
+int bd_select_stream(BLURAY *bd, uint32_t stream_type, uint32_t stream_id, uint32_t enable_flag)
+{
+    int is_checked_uo_mask = 0;
+    int ret = -1;
+
     bd_mutex_lock(&bd->mutex);
+
+    /* Selecting stream should be a safe UO */
+    is_checked_uo_mask = (BLURAY_PLAYER_SETTING_UO_RESTRICTION_COMPLIANT <= bd->uo_restriction_level);
 
     switch (stream_type) {
         case BLURAY_AUDIO_STREAM:
-            bd_psr_write(bd->regs, PSR_PRIMARY_AUDIO_ID, stream_id & 0xff);
+            ret = _select_audio_stream(bd, stream_id, is_checked_uo_mask);
             break;
         case BLURAY_PG_TEXTST_STREAM:
-            bd_psr_write_bits(bd->regs, PSR_PG_STREAM,
-                              ((!!enable_flag)<<31) | (stream_id & 0xfff),
-                              0x80000fff);
+            ret = _select_pg_textst_stream(bd, stream_id, enable_flag, is_checked_uo_mask);
             break;
         /*
         case BLURAY_SECONDARY_VIDEO_STREAM:
@@ -3081,6 +3202,8 @@ void bd_select_stream(BLURAY *bd, uint32_t stream_type, uint32_t stream_id, uint
     }
 
     bd_mutex_unlock(&bd->mutex);
+
+    return ret;
 }
 
 /*
@@ -3511,11 +3634,15 @@ static int _try_play_title(BLURAY *bd, unsigned title)
         return 0;
     }
 
-    if (bd->uo_mask.title_search) {
-        BD_DEBUG(DBG_BLURAY | DBG_CRIT, "title search masked\n");
+    if (BLURAY_PLAYER_SETTING_UO_RESTRICTION_RELAXED <= bd->uo_restriction_level && bd->uo_mask.title_search) {
+        BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bd_play_title(): UO title search masked\n");
+        // FIXME: UO_MASK_TITLE_SEARCH_INDEX is not part of BD-J API UOMaskTableControl
         _bdj_event(bd, BDJ_EVENT_UO_MASKED, UO_MASK_TITLE_SEARCH_INDEX);
+
         return 0;
     }
+
+    /* TODO: Check if the title can be accessed */
 
     return _play_title(bd, title);
 }
@@ -3544,9 +3671,11 @@ static int _try_menu_call(BLURAY *bd, int64_t pts)
         return 0;
     }
 
-    if (bd->uo_mask.menu_call) {
-        BD_DEBUG(DBG_BLURAY | DBG_CRIT, "menu call masked\n");
+    if (BLURAY_PLAYER_SETTING_UO_RESTRICTION_RELAXED <= bd->uo_restriction_level && bd->uo_mask.menu_call) {
+        BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bd_menu_call(): UO menu call masked\n");
+        // FIXME: UO_MASK_MENU_CALL_INDEX is not part of BD-J API UOMaskTableControl
         _bdj_event(bd, BDJ_EVENT_UO_MASKED, UO_MASK_MENU_CALL_INDEX);
+
         return 0;
     }
 
@@ -3795,9 +3924,47 @@ void bd_set_scr(BLURAY *bd, int64_t pts)
     bd_mutex_unlock(&bd->mutex);
 }
 
+static int _get_rate_uo_index(BLURAY *bd, uint32_t rate, bd_uo_mask_index_e *uo_index)
+{
+    if (BLURAY_RATE_PAUSED == rate) {
+        /* Pause On should be a safe UO */
+        if (bd->uo_restriction_level <= BLURAY_PLAYER_SETTING_UO_RESTRICTION_SAFE) {
+            return 0; // ignore UO restriction
+        }
+        *uo_index = UO_MASK_PAUSE_ON_MASK_INDEX;
+        return 1;
+    }
+
+    /* If current clip is freezed, Still Off UO will certainly break playback */
+    if (bd->st0.clip->still_mode >= BLURAY_STILL_TIME) {
+        if (bd->uo_restriction_level <= BLURAY_PLAYER_SETTING_UO_RESTRICTION_SAFE) {
+            return 0; // ignore UO restriction
+        }
+        *uo_index = UO_MASK_STILL_OFF_MASK_INDEX;
+        return 1;
+    }
+
+    /* use Forward Play UO, as libbluray does not consider backward play */
+    if (bd->uo_restriction_level <= BLURAY_PLAYER_SETTING_UO_RESTRICTION_SAFE) {
+        return 0; // ignore UO restriction
+    }
+
+    *uo_index = UO_MASK_FORWARD_PLAY_MASK_INDEX;
+    return 1;
+}
+
 static int _set_rate(BLURAY *bd, uint32_t rate)
 {
+    bd_uo_mask_index_e uo_mask_idx = 0;
+
     if (!bd->title) {
+        return -1;
+    }
+
+    if (_get_rate_uo_index(bd, rate, &uo_mask_idx) && _is_uo_masked(bd, uo_mask_idx)) {
+        BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bd_set_rate(%" PRIu32 ") UO %d restricted\n",
+            rate, uo_mask_idx);
+        _bdj_event(bd, BDJ_EVENT_UO_MASKED, (unsigned) uo_mask_idx);
         return -1;
     }
 
@@ -3839,6 +4006,47 @@ int bd_mouse_select(BLURAY *bd, int64_t pts, uint16_t x, uint16_t y)
     return result;
 }
 
+static int _get_key_uo_index(BLURAY *bd, uint32_t key_id, bd_uo_mask_index_e *uo_index)
+{
+    unsigned i;
+
+    static const struct {
+        bd_vk_key_e key;
+        bd_uo_mask_index_e uo_index;
+        bd_player_setting_uo_restriction_level uo_min_level;
+    } key_uo_map[] = {
+#define D(k, i, l)  { k, UO_MASK_ ## i, BLURAY_PLAYER_SETTING_UO_RESTRICTION_ ## l }
+        D(BD_VK_ROOT_MENU, MENU_CALL_INDEX, SAFE),
+        /* BD_VK_POPUP handled specifically */
+        D(BD_VK_UP, MOVE_UP_SELECTED_BUTTON_MASK_INDEX, COMPLIANT),
+        D(BD_VK_DOWN, MOVE_DOWN_SELECTED_BUTTON_MASK_INDEX, COMPLIANT),
+        D(BD_VK_LEFT, MOVE_LEFT_SELECTED_BUTTON_MASK_INDEX, COMPLIANT),
+        D(BD_VK_RIGHT, MOVE_RIGHT_SELECTED_BUTTON_MASK_INDEX, COMPLIANT),
+        D(BD_VK_ENTER, ACTIVATE_BUTTON_MASK_INDEX, COMPLIANT),
+#undef D
+    };
+
+    if (BD_VK_POPUP == key_id) {
+        /* check if pop-up menu is on, if so key is treated as Pop-up Off UO */
+        if (bd->uo_restriction_level <= BLURAY_PLAYER_SETTING_UO_RESTRICTION_SAFE) {
+            return 0; // Not enforced
+        }
+        return (bd->gc_status & GC_STATUS_POPUP) ? UO_MASK_POPUP_OFF_MASK_INDEX : UO_MASK_POPUP_ON_MASK_INDEX;
+    }
+
+    for (i = 0; i < sizeof(key_uo_map) / sizeof(key_uo_map[0]); i++) {
+        if (key_uo_map[i].key == key_id) {
+            if (bd->uo_restriction_level < key_uo_map[i].uo_min_level) {
+                return 0; // Not enforced
+            }
+            *uo_index = key_uo_map[i].uo_index;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 #define BD_VK_FLAGS_MASK (BD_VK_KEY_PRESSED | BD_VK_KEY_TYPED | BD_VK_KEY_RELEASED)
 #define BD_VK_KEY(k)     ((k) & ~(BD_VK_FLAGS_MASK))
 #define BD_VK_FLAGS(k)   ((k) & BD_VK_FLAGS_MASK)
@@ -3847,6 +4055,8 @@ int bd_mouse_select(BLURAY *bd, int64_t pts, uint16_t x, uint16_t y)
 
 int bd_user_input(BLURAY *bd, int64_t pts, uint32_t key)
 {
+    bd_uo_mask_index_e uo_mask_idx = 0;
+    int uo_is_masked = 0;
     int result = -1;
 
     if (BD_VK_KEY(key) == BD_VK_ROOT_MENU) {
@@ -3859,10 +4069,18 @@ int bd_user_input(BLURAY *bd, int64_t pts, uint32_t key)
     bd_mutex_lock(&bd->mutex);
 
     _set_scr(bd, pts);
+    if (_get_key_uo_index(bd, BD_VK_KEY(key), &uo_mask_idx)) {
+        uo_is_masked = _is_uo_masked(bd, uo_mask_idx);
+    }
 
     if (bd->title_type == title_hdmv) {
         if (BD_KEY_TYPED(key)) {
-            result = _run_gc(bd, GC_CTRL_VK_KEY, BD_VK_KEY(key));
+            if (uo_is_masked) {
+                BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bd_user_input(%" PRIu32 ") UO %d restricted\n", key, uo_mask_idx);
+                result = 0;
+            } else {
+                result = _run_gc(bd, GC_CTRL_VK_KEY, BD_VK_KEY(key));
+            }
         } else {
             result = 0;
         }
