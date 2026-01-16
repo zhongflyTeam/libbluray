@@ -449,6 +449,9 @@ public class Libbluray {
         synchronized (bdjoFilesLock) {
             bdjoFiles = null;
         }
+        synchronized (mplsFilesLock) {
+            mplsFiles = null;
+        }
         classLoaderAdapter = null;
         loaderAdapter = null;
         booted = false;
@@ -517,13 +520,32 @@ public class Libbluray {
     /* cache parsed .bdjo files */
     private static Map bdjoFiles = null;
     private static Object bdjoFilesLock = new Object();
+    /* cache parsed .mpls files */
+    private static Map mplsFiles = null;
+    private static Object mplsFilesLock = new Object();
+
 
     public static byte[] getAacsData(int type) {
         return getAacsDataN(nativePointer, type);
     }
 
     public static PlaylistInfo getPlaylistInfo(int playlist) {
-        return getPlaylistInfoN(nativePointer, playlist);
+        PlaylistInfo mpls;
+        synchronized (mplsFilesLock) {
+            if (mplsFiles == null) {
+                mplsFiles = new HashMap();
+            } else {
+                mpls = (PlaylistInfo)mplsFiles.get(playlist);
+                if (mpls != null) {
+                    return mpls;
+                }
+            }
+            mpls = getPlaylistInfoN(nativePointer, playlist);
+            if (mpls != null) {
+                mplsFiles.put(playlist, mpls);
+            }
+            return mpls;
+        }
     }
 
     public static Bdjo getBdjo(String name) {
