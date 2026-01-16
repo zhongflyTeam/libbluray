@@ -23,14 +23,13 @@ import java.util.Enumeration;
 import java.io.Serializable;
 import java.util.Vector;
 
-import org.videolan.Logger;
-
 public class TVTimerSpec implements Serializable
 {
     private boolean absolute;
     private boolean regular;
     private boolean repeat;
     private long    time;
+    private Vector listeners = new Vector(); // TVTimerWentOffListener
 
     public TVTimerSpec() {
         absolute = true;
@@ -56,15 +55,34 @@ public class TVTimerSpec implements Serializable
     }
 
     public void addTVTimerWentOffListener(TVTimerWentOffListener l) {
-        Logger.unimplemented(TVTimer.class.getName(), "addTVTimerWentOffListener");
+        if (l != null && !listeners.contains(l)) {
+            listeners.addElement(l);
+        }
     }
 
     public void removeTVTimerWentOffListener(TVTimerWentOffListener l) {
-        Logger.unimplemented(TVTimer.class.getName(), "removeTVTimerWentOffListener");
+        if (l != null) {
+            listeners.removeElement(l);
+        }
     }
 
     public void notifyListeners(TVTimer source) {
-        Logger.unimplemented(TVTimer.class.getName(), "notifyListeners");
+        TVTimerWentOffEvent event = new TVTimerWentOffEvent(source, this);
+        // Copy to avoid ConcurrentModificationException
+        Vector listenersCopy;
+        synchronized (listeners) {
+            listenersCopy = new Vector(listeners);
+        }
+        Enumeration e = listenersCopy.elements();
+        while (e.hasMoreElements()) {
+            TVTimerWentOffListener listener = (TVTimerWentOffListener) e.nextElement();
+            try {
+                listener.timerWentOff(event);
+            } catch (Exception ex) {
+                System.err.println("TVTimerSpec: Exception in listener: " + ex);
+                ex.printStackTrace();
+            }
+        }
     }
 
     public void setAbsolute(boolean absolute) {

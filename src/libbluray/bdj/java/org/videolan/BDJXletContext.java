@@ -30,6 +30,8 @@ import java.security.PrivilegedAction;
 
 import javax.microedition.xlet.UnavailableContainerException;
 
+import javax.tv.util.TVTimerImpl;
+
 import org.bluray.ui.FrameAccurateAnimation;
 import org.dvb.application.AppID;
 import org.dvb.application.AppProxy;
@@ -282,6 +284,14 @@ public class BDJXletContext implements javax.tv.xlet.XletContext, javax.microedi
         return sceneFactory;
     }
 
+    public void setTVTimer(TVTimerImpl tvt) {
+        tvTimer = tvt;
+    }
+
+    public TVTimerImpl getTVTimer() {
+        return tvTimer;
+    }
+
     public static Object getXletDefaultLook(String key, Class defClass) {
         BDJXletContext ctx = BDJXletContext.getCurrentContext();
         if (ctx == null) {
@@ -492,6 +502,9 @@ public class BDJXletContext implements javax.tv.xlet.XletContext, javax.microedi
             callbackQueue.shutdown();
             userEventQueue.shutdown();
             mediaQueue.shutdown();
+            if (tvTimer != null) {
+                tvTimer.shutdown();
+            }
         }
 
         EventQueue eq = eventQueue;
@@ -516,6 +529,7 @@ public class BDJXletContext implements javax.tv.xlet.XletContext, javax.microedi
             callbackQueue = null;
             userEventQueue = null;
             mediaQueue = null;
+            tvTimer = null;
         }
         synchronized (this) {
             threadGroup = null;
@@ -546,5 +560,6 @@ public class BDJXletContext implements javax.tv.xlet.XletContext, javax.microedi
     private BDJActionQueue callbackQueue;
     private BDJActionQueue userEventQueue;
     private BDJActionQueue mediaQueue;
+    private TVTimerImpl tvTimer = null;
     private static final Logger logger = Logger.getLogger(BDJXletContext.class.getName());
 }

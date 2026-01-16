@@ -20,11 +20,23 @@
 package javax.tv.util;
 
 import org.videolan.Logger;
+import org.videolan.BDJXletContext;
 
 public abstract class TVTimer
 {
-    public static TVTimer getTimer() {
-        Logger.unimplemented(TVTimer.class.getName(), "getTimer");
+    public static synchronized TVTimer getTimer() {
+        BDJXletContext context = BDJXletContext.getCurrentContext();
+
+        if (context != null) {
+            if (context.getTVTimer() == null) {
+                context.setTVTimer(new TVTimerImpl());
+            }
+
+            return context.getTVTimer();
+        }
+
+        logger.error("getTimer(): no context at " + Logger.dumpStack());
+
         return null;
     }
 
@@ -36,4 +48,6 @@ public abstract class TVTimer
     public abstract long getMinRepeatInterval();
 
     public abstract void deschedule(TVTimerSpec paramTVTimerSpec);
+
+    private static final Logger logger = Logger.getLogger(TVTimer.class.getName());
 }
