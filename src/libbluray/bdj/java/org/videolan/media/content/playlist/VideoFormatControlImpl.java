@@ -42,14 +42,16 @@ public class VideoFormatControlImpl implements VideoFormatControl {
         TIClip ci = player.getCurrentClipInfo();
         if ((ci == null) || (ci.getVideoStreamCount() <= 0))
             return ASPECT_RATIO_UNKNOWN;
-        Dimension aspect = ci.getVideoStreams()[0].getVideoAspectRatio();
-        if (aspect != null) {
-            if ((aspect.width == 4) && (aspect.height == 3))
-                return ASPECT_RATIO_4_3;
-            if ((aspect.width == 16) && (aspect.height == 9))
-                return ASPECT_RATIO_16_9;
+
+        byte aspect = ci.getVideoStreams()[0].getVideoAspectRatioCode();
+        switch (aspect) {
+            case (byte)0x02:
+                return org.dvb.media.VideoFormatControl.ASPECT_RATIO_4_3;
+            case (byte)0x03:
+                return org.dvb.media.VideoFormatControl.ASPECT_RATIO_16_9;
+            default:
+                return org.dvb.media.VideoFormatControl.ASPECT_RATIO_UNKNOWN;
         }
-        return ASPECT_RATIO_UNKNOWN;
     }
 
     public int getActiveFormatDefinition() {

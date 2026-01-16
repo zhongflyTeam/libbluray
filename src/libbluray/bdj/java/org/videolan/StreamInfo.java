@@ -107,21 +107,8 @@ public class StreamInfo {
         return new Dimension(width, height);
     }
 
-    public Dimension getVideoAspectRatio() {
-        int x, y;
-        switch (aspect) {
-        case (byte)0x02:
-            x = 4;
-            y = 3;
-            break;
-        case (byte)0x03:
-            x = 16;
-            y = 9;
-            break;
-        default:
-                return null;
-        }
-        return new Dimension(x, y);
+    public byte getVideoAspectRatioCode() {
+        return aspect;
     }
 
     public byte getRate() {
