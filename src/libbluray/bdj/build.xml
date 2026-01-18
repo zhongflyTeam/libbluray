@@ -32,6 +32,7 @@
                source="${java_version_bdj}" target="${java_version_bdj}">
                <compilerarg value="-XDignore.symbol.file"/>
                <compilerarg value="-Xlint:-deprecation"/>
+               <compilerarg value="-Xlint:-removal"/>
         </javac>
     </target>
     <target name="dist" depends="compile"
