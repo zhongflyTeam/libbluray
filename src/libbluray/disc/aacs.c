@@ -163,7 +163,7 @@ BD_AACS *libaacs_load(int force_mmbd)
 }
 
 int libaacs_open(BD_AACS *p, const char *device,
-                   void *file_open_handle, void *file_open_fp,
+                   void *file_open_handle, AACS_FILE_OPEN2 file_open_fp,
                    const char *keyfile_path)
 
 {

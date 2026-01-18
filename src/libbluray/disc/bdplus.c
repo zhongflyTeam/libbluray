@@ -178,7 +178,7 @@ BD_BDPLUS *libbdplus_load()
 }
 
 int libbdplus_init(BD_BDPLUS *p, const char *root, const char *device,
-                   void *file_open_handle, void *file_open_fp,
+                   void *file_open_handle, BDPLUS_FILE_OPEN file_open_fp,
                    const uint8_t *vid, const uint8_t *mk)
 {
     fptr_p_void    bdplus_init;
