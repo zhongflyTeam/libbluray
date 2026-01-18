@@ -1698,10 +1698,13 @@ static void _playmark_reached(BLURAY *bd)
  * seeking and current position
  */
 
-static void _seek_internal(BLURAY *bd,
+static int64_t _seek_internal(BLURAY *bd,
                            const NAV_CLIP *clip, uint32_t title_pkt, uint32_t clip_pkt)
 {
-    if (_seek_stream(bd, &bd->st0, clip, clip_pkt) >= 0) {
+    int64_t result;
+
+    result = _seek_stream(bd, &bd->st0, clip, clip_pkt);
+    if (result >= 0) {
         uint32_t media_time;
 
         /* update title position */
@@ -1728,7 +1731,10 @@ static void _seek_internal(BLURAY *bd,
         }
 
         BD_DEBUG(DBG_BLURAY, "Seek to %" PRIu64 "\n", bd->s_pos);
+        return bd->s_pos;
     }
+
+    return result;
 }
 
 /* _change_angle() should be used only before call to _seek_internal() ! */
