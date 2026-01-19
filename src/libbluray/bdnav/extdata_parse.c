@@ -27,7 +27,7 @@
 #include <stdint.h>
 
 int bdmv_parse_extension_data(BITSTREAM *bits,
-                              int start_address,
+                              uint32_t start_address,
                               int (*handler)(BITSTREAM*, int, int, void*),
                               void *handle)
 {
@@ -35,7 +35,7 @@ int bdmv_parse_extension_data(BITSTREAM *bits,
     int num_entries, n;
 
     if (start_address < 1) return 0;
-    if (start_address > bits->end - 12) return 0;
+    if ((int64_t)start_address + 12 > bits->end) return 0;
 
     if (bs_seek_byte(bits, start_address) < 0) {
         return 0;
@@ -47,7 +47,9 @@ int bdmv_parse_extension_data(BITSTREAM *bits,
     bs_skip(bits, 24); /* padding */
     num_entries = bs_read(bits, 8);
 
-    if (start_address > bits->end - 12 - num_entries * 12) return 0;
+    if ((int64_t)start_address + 12 + num_entries * 12 > bits->end) {
+        return 0;
+    }
 
     for (n = 0; n < num_entries; n++) {
         uint16_t id1       = bs_read(bits, 16);

@@ -26,7 +26,7 @@
 #include <stdint.h>
 
 BD_PRIVATE int bdmv_parse_extension_data(BITSTREAM *bits,
-                                         int start_address,
+                                         uint32_t start_address,
                                          int (*handler)(BITSTREAM*, int, int, void*),
                                          void *handle);
 
