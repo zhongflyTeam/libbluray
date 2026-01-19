@@ -833,6 +833,11 @@ const NAV_CLIP* nav_chapter_search(const NAV_TITLE *title, unsigned chapter,
 {
     const NAV_CLIP *clip;
 
+    if (title->pl->list_count < 1) {
+        BD_DEBUG(DBG_NAV | DBG_CRIT, "nav_chapter_search() failed: empty playlist\n");
+        return NULL;
+    }
+
     if (chapter > title->chap_list.count) {
         clip = &title->clip_list.clip[0];
         *clip_pkt = clip->start_pkt;
@@ -874,6 +879,11 @@ const NAV_CLIP* nav_mark_search(const NAV_TITLE *title, unsigned mark,
                                 uint32_t *clip_pkt, uint32_t *out_pkt)
 {
     const NAV_CLIP *clip;
+
+    if (title->pl->list_count < 1) {
+        BD_DEBUG(DBG_NAV | DBG_CRIT, "nav_mark_search() failed: empty playlist\n");
+        return NULL;
+    }
 
     if (mark > title->mark_list.count) {
         clip = &title->clip_list.clip[0];
@@ -919,6 +929,12 @@ const NAV_CLIP* nav_packet_search(const NAV_TITLE *title, uint32_t pkt,
 
     *out_time = 0;
     pos = 0;
+
+    if (title->pl->list_count < 1) {
+        BD_DEBUG(DBG_NAV | DBG_CRIT, "nav_packet_search() failed: empty playlist\n");
+        return NULL;
+    }
+
     for (ii = 0; ii < title->pl->list_count; ii++) {
         clip = &title->clip_list.clip[ii];
         len = clip->end_pkt - clip->start_pkt;
@@ -1042,6 +1058,10 @@ void nav_clip_time_search(const NAV_CLIP *clip, uint32_t tick, uint32_t *clip_pk
  */
 const NAV_CLIP* nav_next_clip(const NAV_TITLE *title, const NAV_CLIP *clip)
 {
+    if (title->clip_list.count < 1) {
+        BD_DEBUG(DBG_NAV | DBG_CRIT, "nav_next_clip() failed: empty playlist\n");
+        return NULL;
+    }
     if (clip == NULL) {
         return &title->clip_list.clip[0];
     }
