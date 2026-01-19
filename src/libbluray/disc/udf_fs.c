@@ -112,7 +112,7 @@ static int _dir_read(BD_DIR_H *dir, BD_DIRENT *entry)
     struct udfread_dirent e;
 
     if (!udfread_readdir((UDFDIR*)dir->internal, &e)) {
-        return -1;
+        return 1;
     }
 
     strncpy(entry->d_name, e.d_name, sizeof(entry->d_name));
