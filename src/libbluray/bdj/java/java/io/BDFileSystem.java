@@ -114,10 +114,10 @@ public abstract class BDFileSystem extends FileSystem {
             });
     }
 
-    private static void init0(Class c) {
-        Field filesystem;
-        try {
-            filesystem = c.getDeclaredField("fs");
+    private static void init0(Class c, String field_name)
+        throws NoSuchFieldException, IllegalAccessException {
+
+            Field filesystem = c.getDeclaredField(field_name);
             filesystem.setAccessible(true);
 
             FileSystem fs = (FileSystem)filesystem.get(null);
@@ -131,8 +131,17 @@ public abstract class BDFileSystem extends FileSystem {
                 //modifiersField.setInt(filesystem, filesystem.getModifiers() & ~Modifier.FINAL);
                 filesystem.set(null, new BDFileSystemImpl(fs));
             }
-        } catch (Exception t) {
-            error("Hooking FileSystem class failed: " + t);
+    }
+
+    private static void init0(Class c) {
+        try {
+            init0(c, "FS");
+        } catch (Exception t0) {
+            try {
+                init0(c, "fs");
+            } catch (Exception t1) {
+                error("Hooking FileSystem class failed: " + t0 + ", " + t1);
+            }
         }
     }
 
