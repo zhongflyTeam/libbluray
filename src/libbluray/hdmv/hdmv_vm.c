@@ -1083,7 +1083,7 @@ static int _hdmv_step(HDMV_VM *p)
                     }
                     switch (insn->branch_opt) {
                         case INSN_NOP:                      break;
-                        case INSN_GOTO:  p->pc   = dst - 1; break;
+                        case INSN_GOTO:  p->pc   = dst; inc_pc = 0; break;
                         case INSN_BREAK: p->pc   = 1 << 17; break;
                         default:
                             BD_DEBUG(DBG_HDMV|DBG_CRIT, "unknown BRANCH/GOTO option %d in opcode 0x%08x\n",
