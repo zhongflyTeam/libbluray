@@ -897,7 +897,7 @@ _parse_pip_metadata_block(BITSTREAM *bits, uint32_t start_address, MPLS_PIP_META
     data_address = bs_read(bits, 32);
 
     pos = bs_pos(bits) / 8;
-    if (bs_seek_byte(bits, start_address + data_address) < 0) {
+    if (bs_seek_byte(bits, (int64_t)start_address + data_address) < 0) {
         return 0;
     }
     result = _parse_pip_data(bits, data);

@@ -342,7 +342,7 @@ _parse_ep_map_stream(BITSTREAM *bits, CLPI_EP_MAP_ENTRY *ee)
         coarse[ii].spn_ep         = bs_read(bits, 32);
     }
 
-    if (bs_seek_byte(bits, ee->ep_map_stream_start_addr+fine_start) < 0) {
+    if (bs_seek_byte(bits, (int64_t)ee->ep_map_stream_start_addr+fine_start) < 0) {
         return 0;
     }
 

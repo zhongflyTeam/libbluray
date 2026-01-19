@@ -59,7 +59,7 @@ int bdmv_parse_extension_data(BITSTREAM *bits,
 
         if (ext_start + start_address + ext_len > bits->end) return 0;
 
-        if (bs_seek_byte(bits, start_address + ext_start) >= 0) {
+        if (bs_seek_byte(bits, (int64_t)start_address + ext_start) >= 0) {
             (handler)(bits, id1, id2, handle);
         }
 
