@@ -62,29 +62,24 @@ public class TitleComponentImpl implements TitleComponent {
     }
 
     public Locator getLocator() {
-        String str;
-
-        str = "bd://" + ((TitleImpl)service).getTitleNum() +
-            ".PLAYLIST:" + playlistId +
-            ".ITEM:" + playitemId;
-
+        String tags[] = new String[1];
         if (type.equals(StreamType.AUDIO) && primary)
-            str += ".A1:" + stream_number;
+            tags[0] = "A1:" + stream_number;
         else if (type.equals(StreamType.VIDEO) && primary)
-            str += ".V1:" + stream_number;
+            tags[0] = "V1:" + stream_number;
         else if (type.equals(StreamType.AUDIO) && !primary)
-            str += ".A2:" + stream_number;
+            tags[0] = "A2:" + stream_number;
         else if (type.equals(StreamType.VIDEO) && !primary)
-            str += ".V2:" + stream_number;
+            tags[0] = "V2:" + stream_number;
         else if (type.equals(StreamType.SUBTITLES) && primary)
-            str += ".P:" + stream_number;
+            tags[0] = "P:" + stream_number;
         else {
             System.err.println("Unknown StreamType " + type);
             return null;
         }
 
         try {
-            return new BDLocator(str);
+            return new BDLocator(null, ((TitleImpl)service).getTitleNum(), playlistId, playitemId, -1, tags);
         } catch (InvalidLocatorException e) {
             return null;
         }

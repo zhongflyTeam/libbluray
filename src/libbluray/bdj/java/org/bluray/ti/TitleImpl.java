@@ -66,9 +66,8 @@ public class TitleImpl implements Title {
     }
 
     public Locator getLocator() {
-        String url = "bd://" + Integer.toString(titleNum, 16);
         try {
-            return new BDLocator(url);
+            return new BDLocator(null, titleNum, -1);
         } catch (InvalidLocatorException ex) {
             return null;
         }
