@@ -7,9 +7,12 @@ ant = find_program('ant', required: get_option('bdj_jar'), disabler: true)
 
 if ant.found() and add_languages('java', native: false, required: get_option('bdj_jar'))
     javac_version = meson.get_compiler('java').version()
+    javac_path    = find_program('javac').full_path()
+    javac_arg     = '-Xlint:-deprecation'
     if get_option('java9') and bdj_type == 'j2se'
         if javac_version.version_compare('>= 18.0')
             java_src_version = '1.8'
+            javac_arg='-Xlint:-removal'
         elif javac_version.version_compare('>=12.0')
             java_src_version = '1.7'
         elif javac_version.version_compare('>=9.0')
@@ -20,6 +23,7 @@ if ant.found() and add_languages('java', native: false, required: get_option('bd
     endif
     java_summary = { 'Build BD-J JAR': true,
                      '    javac version': javac_version,
+                     '    javac path': javac_path,
                      '    Java binary version': java_src_version }
 else
     java_summary = { 'Build BD-J JAR': false }
@@ -35,6 +39,8 @@ custom_target('bdj-jar',
               '-Ddist=' + meson.current_build_dir(),
               '-Dbootclasspath=' + get_option('bdj_bootclasspath'),
               '-Dsrc_awt=:' + awt_src,
+              '-Djavac_path=' + javac_path,
+              '-Djavac_arg=' + javac_arg,
               f'-Dversion=@bdj_type@-@libbluray_version@',
               f'-Djava_version_asm=@java_src_version@',
               f'-Djava_version_bdj=@java_src_version@'],
