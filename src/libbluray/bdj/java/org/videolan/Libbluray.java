@@ -535,14 +535,14 @@ public class Libbluray {
             if (mplsFiles == null) {
                 mplsFiles = new HashMap();
             } else {
-                mpls = (PlaylistInfo)mplsFiles.get(playlist);
+                mpls = (PlaylistInfo)mplsFiles.get(Integer.valueOf(playlist));
                 if (mpls != null) {
                     return mpls;
                 }
             }
             mpls = getPlaylistInfoN(nativePointer, playlist);
             if (mpls != null) {
-                mplsFiles.put(playlist, mpls);
+                mplsFiles.put(Integer.valueOf(playlist), mpls);
             }
             return mpls;
         }

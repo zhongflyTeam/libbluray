@@ -25,7 +25,7 @@ public class PortingHelper {
 
     public static void stopThread(Thread t) {
         try {
-            Thread.class.getMethod("stop").invoke(t);
+            Thread.class.getMethod("stop", new Class[0]).invoke(t, new Object[0]);
         } catch (NoSuchMethodException e) {
             // ignore
         } catch (IllegalAccessException e) {
@@ -37,7 +37,7 @@ public class PortingHelper {
 
     public static void stopThreadGroup(ThreadGroup t) {
         try {
-            ThreadGroup.class.getMethod("stop").invoke(t);
+            ThreadGroup.class.getMethod("stop", new Class[0]).invoke(t, new Object[0]);
         } catch (NoSuchMethodException e) {
             // ignore
         } catch (IllegalAccessException e) {
