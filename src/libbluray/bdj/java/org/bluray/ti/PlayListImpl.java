@@ -34,7 +34,6 @@ public class PlayListImpl implements PlayList {
     protected PlayListImpl(String filename, Title service) {
         this.filename = filename;
         this.id = Integer.parseInt(filename);
-        this.playlist = Libbluray.getPlaylistInfo(id);
         this.service = service;
     }
 
@@ -47,7 +46,14 @@ public class PlayListImpl implements PlayList {
     }
 
     public PlayItem[] getPlayItems() {
+        PlaylistInfo playlist = Libbluray.getPlaylistInfo(id);
+        if (playlist == null)
+            return new PlayItemImpl[0];
+
         TIClip[] clips = playlist.getClips();
+        if (clips == null)
+            return new PlayItemImpl[0];
+
         PlayItem[] items = new PlayItem[clips.length];
 
         for (int i = 0; i < clips.length; i++) {
@@ -76,7 +82,6 @@ public class PlayListImpl implements PlayList {
     }
 
     private String filename;
-    private PlaylistInfo playlist;
     private int id;
     private Title service;
 }
