@@ -18,15 +18,10 @@ public class TitleImpl implements Title {
         this.ti = Libbluray.getTitleInfo(titleNum);
         if (ti == null)
             throw new SIException("Title " + titleNum + " does not exist in disc index");
-        if (ti.isBdj()) {
-            bdjo = Libbluray.getBdjo(ti.getBdjoName());
-            if (bdjo == null)
-                throw new SIException("title " + titleNum + ": Failed loading " + ti.getBdjoName() + ".bdjo");
-        }
     }
 
     public PlayList[] getPlayLists() {
-        if (bdjo == null)
+        if (!getBdjo())
             return new PlayList[0];
 
         org.videolan.bdjo.PlayListTable plt = bdjo.getAccessiblePlaylists();
@@ -60,7 +55,7 @@ public class TitleImpl implements Title {
     }
 
     public boolean hasAutoPlayList() {
-        if (bdjo == null)
+        if (!getBdjo())
             return false;
         return bdjo.getAccessiblePlaylists().isAutostartFirst();
     }
@@ -126,6 +121,16 @@ public class TitleImpl implements Title {
 
     public TitleInfo getTitleInfo() {
         return ti;
+    }
+
+    private boolean getBdjo() {
+        if (ti.isBdj() && bdjo == null) {
+            bdjo = Libbluray.getBdjo(ti.getBdjoName());
+            if (bdjo == null) {
+                org.videolan.Logger.getLogger(TitleImpl.class.getName()).error("title " + titleNum + ": Failed loading " + ti.getBdjoName() + ".bdjo");
+            }
+        }
+        return bdjo != null;
     }
 
     private int titleNum;
