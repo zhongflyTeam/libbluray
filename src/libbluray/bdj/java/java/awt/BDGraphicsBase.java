@@ -280,14 +280,14 @@ abstract class BDGraphicsBase extends DVBGraphics implements ConstrainableGraphi
     }
 
     public void constrain(int x, int y, int w, int h) {
-        Rectangle rect;
-        if (constrainedRect != null)
-            rect = constrainedRect;
-        else
-            rect = new Rectangle(0, 0, width, height);
-        constrainedRect = rect.intersection(new Rectangle(rect.x + x, rect.y + y, w, h));
-        originX = constrainedRect.x;
-        originY = constrainedRect.y;
+        originX += x;
+        originY += y;
+        Rectangle r = new Rectangle(originX, originY, w, h);
+        if (constrainedRect != null) {
+            constrainedRect = constrainedRect.intersection(r);
+        } else {
+            constrainedRect = r;
+        }
         setupClip();
     }
 
