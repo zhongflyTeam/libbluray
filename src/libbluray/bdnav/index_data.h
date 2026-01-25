@@ -20,8 +20,6 @@
 #if !defined(_INDX_DATA_H_)
 #define _INDX_DATA_H_
 
-#include "util/attributes.h"
-
 #include <stdint.h>
 
 typedef enum {
@@ -123,12 +121,6 @@ typedef struct indx_root_s {
     uint8_t        dv_flag;
     uint8_t        hdr_flags;
 } INDX_ROOT;
-
-
-struct bd_disc;
-
-BD_PRIVATE INDX_ROOT* indx_get(struct bd_disc *disc);  /* parse index.bdmv */
-BD_PRIVATE void       indx_free(INDX_ROOT **index);
 
 #endif // _INDX_DATA_H_
 
