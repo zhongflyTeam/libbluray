@@ -31,10 +31,15 @@ struct bd_mutex_s {
     void *impl;
 };
 
-BD_PRIVATE int bd_mutex_init(BD_MUTEX *p);
-BD_PRIVATE int bd_mutex_destroy(BD_MUTEX *p);
+BD_PRIVATE int bdpriv_mutex_init(BD_MUTEX *p);
+BD_PRIVATE int bdpriv_mutex_destroy(BD_MUTEX *p);
 
-BD_PRIVATE int bd_mutex_lock(BD_MUTEX *p);
-BD_PRIVATE int bd_mutex_unlock(BD_MUTEX *p);
+BD_PRIVATE int bdpriv_mutex_lock(BD_MUTEX *p);
+BD_PRIVATE int bdpriv_mutex_unlock(BD_MUTEX *p);
+
+#define bd_mutex_init(p)     bdpriv_mutex_init(p);
+#define bd_mutex_destroy(p)  bdpriv_mutex_destroy(p)
+#define bd_mutex_lock(p)     bdpriv_mutex_lock(p)
+#define bd_mutex_unlock(p)   bdpriv_mutex_unlock(p)
 
 #endif // LIBBLURAY_MUTEX_H_

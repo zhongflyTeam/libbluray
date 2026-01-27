@@ -117,7 +117,7 @@ static int _mutex_destroy(MUTEX_IMPL *p)
 
 #endif /* HAVE_PTHREAD_H */
 
-int bd_mutex_lock(BD_MUTEX *p)
+int bdpriv_mutex_lock(BD_MUTEX *p)
 {
     if (!p->impl) {
         BD_DEBUG(DBG_BLURAY|DBG_CRIT, "bd_mutex_lock() failed !\n");
@@ -126,7 +126,7 @@ int bd_mutex_lock(BD_MUTEX *p)
     return _mutex_lock((MUTEX_IMPL*)p->impl);
 }
 
-int bd_mutex_unlock(BD_MUTEX *p)
+int bdpriv_mutex_unlock(BD_MUTEX *p)
 {
     if (!p->impl) {
         BD_DEBUG(DBG_BLURAY|DBG_CRIT, "bd_mutex_unlock() failed !\n");
@@ -135,7 +135,7 @@ int bd_mutex_unlock(BD_MUTEX *p)
     return _mutex_unlock((MUTEX_IMPL*)p->impl);
 }
 
-int bd_mutex_init(BD_MUTEX *p)
+int bdpriv_mutex_init(BD_MUTEX *p)
 {
     p->impl = calloc(1, sizeof(MUTEX_IMPL));
     if (!p->impl) {
@@ -151,7 +151,7 @@ int bd_mutex_init(BD_MUTEX *p)
     return 0;
 }
 
-int bd_mutex_destroy(BD_MUTEX *p)
+int bdpriv_mutex_destroy(BD_MUTEX *p)
 {
     if (!p->impl) {
         BD_DEBUG(DBG_BLURAY|DBG_CRIT, "bd_mutex_destroy() failed !\n");
