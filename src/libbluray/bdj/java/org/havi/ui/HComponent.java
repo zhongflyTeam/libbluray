@@ -56,7 +56,6 @@ public abstract class HComponent extends Component implements HMatteLayer, TestO
         if (b != super.isEnabled()) {
             super.setEnabled(b);
             super.setFocusable(b);
-            super.setVisible(b);
         }
     }
 
