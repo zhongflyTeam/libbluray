@@ -70,6 +70,9 @@ public class StreamInfo {
             width = 1920;
             height = 1080;
             break;
+        case (byte)0x08:
+            width = 3840;
+            height = 2160;
         default:
                 return null;
         }

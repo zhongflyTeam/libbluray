@@ -21,6 +21,8 @@ package org.videolan.ti;
 
 import javax.tv.service.navigation.StreamType;
 import org.bluray.ti.CodingType;
+import org.blurayx.uhd.ti.UHDCodingType;
+import org.blurayx.s3d.ti.StereoscopicCodingType;
 
 public class CodingTypeHelper {
     public static CodingType getCodingType(byte coding_type_byte) {
@@ -29,6 +31,10 @@ public class CodingTypeHelper {
             return CodingType.MPEG2_VIDEO;
         case (byte)0x1b:
             return CodingType.MPEG4_AVC_VIDEO;
+	case (byte)0x20:
+	    return StereoscopicCodingType.MPEG4_MVC_VIDEO;
+	case (byte)0x24:
+	    return UHDCodingType.HEVC_VIDEO;
         case (byte)0xea:
             return CodingType.SMPTE_VC1_VIDEO;
         case (byte)0x80:
