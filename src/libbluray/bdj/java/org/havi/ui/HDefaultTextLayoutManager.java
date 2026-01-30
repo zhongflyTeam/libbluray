@@ -38,16 +38,16 @@ public class HDefaultTextLayoutManager implements HTextLayoutManager {
     {
         Dimension size = new Dimension(0, 0);
 
+        Font font = hvisible.getFont();
+        FontMetrics fontMetrics = hvisible.getFontMetrics(font);
+        if (fontMetrics == null) {
+            return new Dimension(0, 0);
+        }
+
         for (int state = HVisible.FIRST_STATE; state <= HVisible.LAST_STATE; state++) {
             String text = hvisible.getTextContent(state);
             if (text != null && !text.equals("")) {
                 String[] lines = StrUtil.split(text, '\n');
-
-                Graphics g = hvisible.getGraphics();
-                if (g == null)
-                    continue;
-                FontMetrics fontMetrics = g.getFontMetrics(hvisible.getFont());
-                g.dispose();
 
                 int lineHeight = fontMetrics.getHeight();
                 int textHeight = lines.length * lineHeight;
@@ -63,6 +63,7 @@ public class HDefaultTextLayoutManager implements HTextLayoutManager {
                 }
             }
         }
+
         return size;
     }
 
@@ -83,9 +84,9 @@ public class HDefaultTextLayoutManager implements HTextLayoutManager {
 
         String[] lines = StrUtil.split(markedUpString, '\n');
 
-        Font font = v.getFont();
-        g.setFont(font);
+        g.setFont(v.getFont());
         FontMetrics fontMetrics = g.getFontMetrics();
+        g.setColor(v.getForeground());
 
         int ascent = fontMetrics.getAscent();
         int descent = Math.abs(fontMetrics.getDescent());
