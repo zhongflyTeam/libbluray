@@ -25,6 +25,10 @@ import org.bluray.ti.CodingType;
 import org.videolan.ti.CodingTypeHelper;
 
 public class StreamInfo {
+
+    public static final byte ASPECT_4_3  = 2;
+    public static final byte ASPECT_16_9 = 3;
+
     public StreamInfo(byte coding_type, byte format, byte rate,
                       char char_code, String lang, byte aspect, byte subpath_id) {
         this.coding_type = coding_type;
