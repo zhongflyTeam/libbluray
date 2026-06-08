@@ -1,6 +1,6 @@
 /*
  * This file is part of libbluray
- * Copyright (C) 2017  Petri Hintukainen <phintuka@users.sourceforge.net>
+ * Copyright (C) 2017-2026  Petri Hintukainen <phintuka@users.sourceforge.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -159,7 +159,7 @@ static char *_scan_prop(char *data, const char *key, size_t *data_size)
     return NULL;
 }
 
-char *properties_get(const char *file, const char *property)
+char *bdpriv_properties_get(const char *file, const char *property)
 {
     char *key, *data;
     size_t data_size;
@@ -191,7 +191,7 @@ char *properties_get(const char *file, const char *property)
     return result;
 }
 
-int properties_put(const char *file, const char *property, const char *val)
+int bdpriv_properties_put(const char *file, const char *property, const char *val)
 {
     char *key = NULL, *old_data = NULL, *new_data = NULL;
     char *old_val;

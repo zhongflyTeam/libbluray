@@ -1,6 +1,6 @@
 /*
  * This file is part of libbluray
- * Copyright (C) 2013-2015  VideoLAN
+ * Copyright (C) 2013-2026  VideoLAN
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,7 @@ static void _unload(BD_AACS *p)
     }
 }
 
-void libaacs_unload(BD_AACS **p)
+void bdpriv_aacs_unload(BD_AACS **p)
 {
     if (p && *p) {
         _unload(*p);
@@ -73,7 +73,7 @@ void libaacs_unload(BD_AACS **p)
     }
 }
 
-int libaacs_required(void *have_file_handle, int (*have_file)(void *, const char *, const char *))
+int bdpriv_aacs_required(void *have_file_handle, int (*have_file)(void *, const char *, const char *))
 {
     if (have_file(have_file_handle, "AACS", "Unit_Key_RO.inf")) {
         BD_DEBUG(DBG_BLURAY, "AACS" DIR_SEP "Unit_Key_RO.inf found. Disc seems to be AACS protected.\n");
@@ -143,7 +143,7 @@ static BD_AACS *_load(int impl_id)
 
     if (!p->decrypt_unit) {
         BD_DEBUG(DBG_BLURAY | DBG_CRIT, "libaacs dlsym failed! (%p)\n", p->h_libaacs);
-        libaacs_unload(&p);
+        bdpriv_aacs_unload(&p);
         return NULL;
     }
 
@@ -157,12 +157,12 @@ static BD_AACS *_load(int impl_id)
     return p;
 }
 
-BD_AACS *libaacs_load(int force_mmbd)
+BD_AACS *bdpriv_aacs_load(int force_mmbd)
 {
     return _load(force_mmbd ? IMPL_LIBMMBD : 0);
 }
 
-int libaacs_open(BD_AACS *p, const char *device,
+int bdpriv_aacs_open(BD_AACS *p, const char *device,
                    void *file_open_handle, AACS_FILE_OPEN2 file_open_fp,
                    const char *keyfile_path)
 
@@ -212,7 +212,7 @@ int libaacs_open(BD_AACS *p, const char *device,
         /* failed. try next aacs implementation if available. */
         BD_AACS *p2 = _load(p->impl_id + 1);
         if (p2) {
-            if (!libaacs_open(p2, device, file_open_handle, file_open_fp, keyfile_path)) {
+            if (!bdpriv_aacs_open(p2, device, file_open_handle, file_open_fp, keyfile_path)) {
                 /* succeed - swap implementations */
                 _unload(p);
                 *p = *p2;
@@ -220,7 +220,7 @@ int libaacs_open(BD_AACS *p, const char *device,
                 return 0;
             }
             /* failed - report original errors */
-            libaacs_unload(&p2);
+            bdpriv_aacs_unload(&p2);
         }
     }
 
@@ -241,14 +241,14 @@ int libaacs_open(BD_AACS *p, const char *device,
  *
  */
 
-void libaacs_select_title(BD_AACS *p, uint32_t title)
+void bdpriv_aacs_select_title(BD_AACS *p, uint32_t title)
 {
     if (p && p->aacs) {
         DL_CALL(p->h_libaacs, aacs_select_title, p->aacs, title);
     }
 }
 
-int libaacs_decrypt_unit(BD_AACS *p, uint8_t *buf)
+int bdpriv_aacs_decrypt_unit(BD_AACS *p, uint8_t *buf)
 {
     if (p && p->aacs) {
         if (!p->decrypt_unit(p->aacs, buf)) {
@@ -261,7 +261,7 @@ int libaacs_decrypt_unit(BD_AACS *p, uint8_t *buf)
     return 0;
 }
 
-int libaacs_decrypt_bus(BD_AACS *p, uint8_t *buf)
+int bdpriv_aacs_decrypt_bus(BD_AACS *p, uint8_t *buf)
 {
     if (p && p->aacs && p->decrypt_bus) {
         if (p->decrypt_bus(p->aacs, buf) > 0) {
@@ -277,12 +277,12 @@ int libaacs_decrypt_bus(BD_AACS *p, uint8_t *buf)
  *
  */
 
-uint32_t libaacs_get_mkbv(BD_AACS *p)
+uint32_t bdpriv_aacs_get_mkbv(BD_AACS *p)
 {
     return p ? p->mkbv : 0;
 }
 
-int libaacs_get_bec_enabled(BD_AACS *p)
+int bdpriv_aacs_get_bec_enabled(BD_AACS *p)
 {
     fptr_int get_bec;
 
@@ -327,7 +327,7 @@ static const char *_type2str(int type)
     }
 }
 
-BD_PRIVATE const uint8_t *libaacs_get_aacs_data(BD_AACS *p, int type)
+BD_PRIVATE const uint8_t *bdpriv_aacs_get_aacs_data(BD_AACS *p, int type)
 {
     if (!p || !p->aacs) {
         BD_DEBUG(DBG_BLURAY | DBG_CRIT, "get_aacs_data(%s): libaacs not initialized!\n", _type2str(type));

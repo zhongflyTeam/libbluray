@@ -1,6 +1,6 @@
 /*
  * This file is part of libbluray
- * Copyright (C) 2014  VideoLAN
+ * Copyright (C) 2014-2026  VideoLAN
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -45,23 +45,23 @@ struct dec_dev {
 
 typedef struct bd_dec BD_DEC;
 
-BD_PRIVATE BD_DEC *dec_init(struct dec_dev *dev,
-                            struct bd_enc_info *enc_info,
-                            const char *keyfile_path,
-                            void *regs, void *psr_read, void *psr_write);
-BD_PRIVATE void dec_close(BD_DEC **);
+BD_PRIVATE BD_DEC *bdpriv_dec_init(struct dec_dev *dev,
+                                   struct bd_enc_info *enc_info,
+                                   const char *keyfile_path,
+                                   void *regs, void *psr_read, void *psr_write);
+BD_PRIVATE void bdpriv_dec_close(BD_DEC **);
 
 /* get decoder data */
-BD_PRIVATE const uint8_t *dec_data(BD_DEC *, int type);
-BD_PRIVATE const uint8_t *dec_disc_id(BD_DEC *);
+BD_PRIVATE const uint8_t *bdpriv_dec_data(BD_DEC *, int type);
+BD_PRIVATE const uint8_t *bdpriv_dec_disc_id(BD_DEC *);
 
 /* status events from upper layers */
-BD_PRIVATE void dec_start(BD_DEC *, uint32_t num_titles);
-BD_PRIVATE void dec_title(BD_DEC *, uint32_t title);
-BD_PRIVATE void dec_application(BD_DEC *, uint32_t data);
+BD_PRIVATE void bdpriv_dec_start(BD_DEC *, uint32_t num_titles);
+BD_PRIVATE void bdpriv_dec_title(BD_DEC *, uint32_t title);
+BD_PRIVATE void bdpriv_dec_application(BD_DEC *, uint32_t data);
 
 /* open low-level stream */
-BD_PRIVATE struct bd_file_s *dec_open_stream(BD_DEC *dec, struct bd_file_s *fp, uint32_t clip_id);
+BD_PRIVATE struct bd_file_s *bdpriv_dec_open_stream(BD_DEC *dec, struct bd_file_s *fp, uint32_t clip_id);
 
 
 #endif /* _BD_DISC_DEC_H_ */

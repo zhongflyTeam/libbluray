@@ -1,6 +1,6 @@
 /*
  * This file is part of libbluray
- * Copyright (C) 2014  VideoLAN
+ * Copyright (C) 2014-2026  VideoLAN
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -66,13 +66,13 @@ static int64_t _stream_read(BD_FILE_H *fp, uint8_t *buf, int64_t size)
     }
 
     if (st->aacs) {
-        if (libaacs_decrypt_unit(st->aacs, buf)) {
+        if (bdpriv_aacs_decrypt_unit(st->aacs, buf)) {
             /* failure is detected from TP header */
         }
     }
 
     if (st->bdplus) {
-        if (libbdplus_fixup(st->bdplus, buf, (int)size) < 0) {
+        if (bdpriv_bdplus_fixup(st->bdplus, buf, (int)size) < 0) {
           /* there's no way to verify if the stream was decoded correctly */
         }
     }
@@ -85,7 +85,7 @@ static int64_t _stream_seek(BD_FILE_H *fp, int64_t offset, int32_t origin)
     DEC_STREAM *st = (DEC_STREAM *)fp->internal;
     int64_t result = st->fp->seek(st->fp, offset, origin);
     if (result >= 0 && st->bdplus) {
-        libbdplus_seek(st->bdplus, st->fp->tell(st->fp));
+        bdpriv_bdplus_seek(st->bdplus, st->fp->tell(st->fp));
     }
     return result;
 }
@@ -100,14 +100,14 @@ static void _stream_close(BD_FILE_H *fp)
 {
     DEC_STREAM *st = (DEC_STREAM *)fp->internal;
     if (st->bdplus) {
-        libbdplus_m2ts_close(&st->bdplus);
+        bdpriv_bdplus_m2ts_close(&st->bdplus);
     }
     st->fp->close(st->fp);
     X_FREE(fp->internal);
     X_FREE(fp);
 }
 
-BD_FILE_H *dec_open_stream(BD_DEC *dec, BD_FILE_H *fp, uint32_t clip_id)
+BD_FILE_H *bdpriv_dec_open_stream(BD_DEC *dec, BD_FILE_H *fp, uint32_t clip_id)
 {
     DEC_STREAM *st;
     BD_FILE_H  *p = calloc(1, sizeof(BD_FILE_H));
@@ -123,14 +123,14 @@ BD_FILE_H *dec_open_stream(BD_DEC *dec, BD_FILE_H *fp, uint32_t clip_id)
     st->fp = fp;
 
     if (dec->bdplus) {
-        st->bdplus = libbdplus_m2ts(dec->bdplus, clip_id, 0);
+        st->bdplus = bdpriv_bdplus_m2ts(dec->bdplus, clip_id, 0);
     }
 
     if (dec->aacs) {
         st->aacs = dec->aacs;
         if (!dec->use_menus) {
             /* There won't be title events --> need to manually reset AACS CPS */
-            libaacs_select_title(dec->aacs, 0xffff);
+            bdpriv_aacs_select_title(dec->aacs, 0xffff);
         }
     }
 
@@ -183,19 +183,19 @@ static int _libaacs_init(BD_DEC *dec, struct dec_dev *dev,
         return 0;
     }
 
-    result = libaacs_open(dec->aacs, dev->device, dev->file_open_vfs_handle, dev->pf_file_open_vfs, keyfile_path);
+    result = bdpriv_aacs_open(dec->aacs, dev->device, dev->file_open_vfs_handle, dev->pf_file_open_vfs, keyfile_path);
 
     i->aacs_error_code = result;
     i->aacs_handled    = !result;
-    i->aacs_mkbv       = libaacs_get_mkbv(dec->aacs);
-    disc_id = libaacs_get_aacs_data(dec->aacs, BD_AACS_DISC_ID);
+    i->aacs_mkbv       = bdpriv_aacs_get_mkbv(dec->aacs);
+    disc_id = bdpriv_aacs_get_aacs_data(dec->aacs, BD_AACS_DISC_ID);
     if (disc_id) {
         memcpy(i->disc_id, disc_id, 20);
     }
 
     if (result) {
         BD_DEBUG(DBG_BLURAY | DBG_CRIT, "aacs_open() failed: %d!\n", result);
-        libaacs_unload(&dec->aacs);
+        bdpriv_aacs_unload(&dec->aacs);
         return 0;
     }
 
@@ -211,33 +211,33 @@ static int _libbdplus_init(BD_DEC *dec, struct dec_dev *dev,
         return 0;
     }
 
-    const uint8_t *vid = libaacs_get_aacs_data(dec->aacs, BD_AACS_MEDIA_VID);
-    const uint8_t *mk  = libaacs_get_aacs_data(dec->aacs, BD_AACS_MEDIA_KEY);
+    const uint8_t *vid = bdpriv_aacs_get_aacs_data(dec->aacs, BD_AACS_MEDIA_VID);
+    const uint8_t *mk  = bdpriv_aacs_get_aacs_data(dec->aacs, BD_AACS_MEDIA_KEY);
     if (!vid) {
         BD_DEBUG(DBG_BLURAY | DBG_CRIT, "BD+ initialization failed (no AACS ?)\n");
-        libbdplus_unload(&dec->bdplus);
+        bdpriv_bdplus_unload(&dec->bdplus);
         return 0;
     }
 
-    if (libbdplus_init(dec->bdplus, dev->root, dev->device, dev->file_open_bdrom_handle, dev->pf_file_open_bdrom, vid, mk)) {
+    if (bdpriv_bdplus_init(dec->bdplus, dev->root, dev->device, dev->file_open_bdrom_handle, dev->pf_file_open_bdrom, vid, mk)) {
         BD_DEBUG(DBG_BLURAY | DBG_CRIT, "bdplus_init() failed\n");
 
         i->bdplus_handled = 0;
-        libbdplus_unload(&dec->bdplus);
+        bdpriv_bdplus_unload(&dec->bdplus);
         return 0;
     }
 
     BD_DEBUG(DBG_BLURAY, "libbdplus initialized\n");
 
     /* map player memory regions */
-    libbdplus_mmap(dec->bdplus, 0, regs);
-    libbdplus_mmap(dec->bdplus, 1, (void*)((uint8_t *)regs + sizeof(uint32_t) * 128));
+    bdpriv_bdplus_mmap(dec->bdplus, 0, regs);
+    bdpriv_bdplus_mmap(dec->bdplus, 1, (void*)((uint8_t *)regs + sizeof(uint32_t) * 128));
 
     /* connect registers */
-    libbdplus_psr(dec->bdplus, regs, psr_read, psr_write);
+    bdpriv_bdplus_psr(dec->bdplus, regs, psr_read, psr_write);
 
-    i->bdplus_gen     = libbdplus_get_gen(dec->bdplus);
-    i->bdplus_date    = libbdplus_get_date(dec->bdplus);
+    i->bdplus_gen     = bdpriv_bdplus_get_gen(dec->bdplus);
+    i->bdplus_date    = bdpriv_bdplus_get_date(dec->bdplus);
     i->bdplus_handled = 1;
 
     if (i->bdplus_date == 0) {
@@ -252,14 +252,14 @@ static int _libbdplus_init(BD_DEC *dec, struct dec_dev *dev,
 static int _dec_detect(struct dec_dev *dev, BD_ENC_INFO *i)
 {
     /* Check for AACS */
-    i->aacs_detected = libaacs_required((void*)dev, _bdrom_have_file);
+    i->aacs_detected = bdpriv_aacs_required((void*)dev, _bdrom_have_file);
     if (!i->aacs_detected) {
         /* No AACS (=> no BD+) */
         return 0;
     }
 
     /* check for BD+ */
-    i->bdplus_detected = libbdplus_required((void*)dev, _bdrom_have_file);
+    i->bdplus_detected = bdpriv_bdplus_required((void*)dev, _bdrom_have_file);
     return 1;
 }
 
@@ -269,12 +269,12 @@ static void _dec_load(BD_DEC *dec, BD_ENC_INFO *i)
 
     if (i->bdplus_detected) {
         /* load BD+ library and check BD+ library type. libmmbd doesn't work with libaacs */
-        dec->bdplus = libbdplus_load();
-        force_mmbd_aacs = dec->bdplus && libbdplus_is_mmbd(dec->bdplus);
+        dec->bdplus = bdpriv_bdplus_load();
+        force_mmbd_aacs = dec->bdplus && bdpriv_bdplus_is_mmbd(dec->bdplus);
     }
 
     /* load AACS library */
-    dec->aacs = libaacs_load(force_mmbd_aacs);
+    dec->aacs = bdpriv_aacs_load(force_mmbd_aacs);
 
     i->libaacs_detected   = !!dec->aacs;
     i->libbdplus_detected = !!dec->bdplus;
@@ -284,9 +284,9 @@ static void _dec_load(BD_DEC *dec, BD_ENC_INFO *i)
  *
  */
 
-BD_DEC *dec_init(struct dec_dev *dev, BD_ENC_INFO *enc_info,
-                 const char *keyfile_path,
-                 void *regs, void *psr_read, void *psr_write)
+BD_DEC *bdpriv_dec_init(struct dec_dev *dev, BD_ENC_INFO *enc_info,
+                        const char *keyfile_path,
+                        void *regs, void *psr_read, void *psr_write)
 {
     BD_DEC *dec = NULL;
 
@@ -313,7 +313,7 @@ BD_DEC *dec_init(struct dec_dev *dev, BD_ENC_INFO *enc_info,
 
     if (!enc_info->aacs_handled) {
         /* AACS failed, clean up */
-        dec_close(&dec);
+        bdpriv_dec_close(&dec);
     }
 
     /* BD+ failure may be non-fatal (not all titles in disc use BD+).
@@ -323,12 +323,12 @@ BD_DEC *dec_init(struct dec_dev *dev, BD_ENC_INFO *enc_info,
     return dec;
 }
 
-void dec_close(BD_DEC **pp)
+void bdpriv_dec_close(BD_DEC **pp)
 {
     if (pp && *pp) {
         BD_DEC *p = *pp;
-        libaacs_unload(&p->aacs);
-        libbdplus_unload(&p->bdplus);
+        bdpriv_aacs_unload(&p->aacs);
+        bdpriv_bdplus_unload(&p->bdplus);
         X_FREE(*pp);
     }
 }
@@ -337,57 +337,57 @@ void dec_close(BD_DEC **pp)
  *
  */
 
-const uint8_t *dec_data(BD_DEC *dec, int type)
+const uint8_t *bdpriv_dec_data(BD_DEC *dec, int type)
 {
     const uint8_t *ret = NULL;
 
     if (type >= 0x1000) {
         if (dec->bdplus) {
-            ret = libbdplus_get_data(dec->bdplus, type);
+            ret = bdpriv_bdplus_get_data(dec->bdplus, type);
         }
     } else {
         if (dec->aacs) {
-            ret = libaacs_get_aacs_data(dec->aacs, type);
+            ret = bdpriv_aacs_get_aacs_data(dec->aacs, type);
         }
     }
 
     return ret;
 }
 
-const uint8_t *dec_disc_id(BD_DEC *dec)
+const uint8_t *bdpriv_dec_disc_id(BD_DEC *dec)
 {
-    return dec_data(dec, BD_AACS_DISC_ID);
+    return bdpriv_dec_data(dec, BD_AACS_DISC_ID);
 }
 
-void dec_start(BD_DEC *dec, uint32_t num_titles)
+void bdpriv_dec_start(BD_DEC *dec, uint32_t num_titles)
 {
     if (num_titles == 0) {
         dec->use_menus = 1;
         if (dec->bdplus) {
-            libbdplus_start(dec->bdplus);
-            libbdplus_event(dec->bdplus, 0x110, 0xffff, 0);
+            bdpriv_bdplus_start(dec->bdplus);
+            bdpriv_bdplus_event(dec->bdplus, 0x110, 0xffff, 0);
         }
     } else {
         if (dec->bdplus) {
-            libbdplus_start(dec->bdplus);
-            libbdplus_event(dec->bdplus, 0xffffffff, num_titles, 0);
+            bdpriv_bdplus_start(dec->bdplus);
+            bdpriv_bdplus_event(dec->bdplus, 0xffffffff, num_titles, 0);
         }
     }
 }
 
-void dec_title(BD_DEC *dec, uint32_t title)
+void bdpriv_dec_title(BD_DEC *dec, uint32_t title)
 {
     if (dec->aacs) {
-        libaacs_select_title(dec->aacs, title);
+        bdpriv_aacs_select_title(dec->aacs, title);
     }
     if (dec->bdplus) {
-        libbdplus_event(dec->bdplus, 0x110, title, 0);
+        bdpriv_bdplus_event(dec->bdplus, 0x110, title, 0);
     }
 }
 
-void dec_application(BD_DEC *dec, uint32_t data)
+void bdpriv_dec_application(BD_DEC *dec, uint32_t data)
 {
     if (dec->bdplus) {
-        libbdplus_event(dec->bdplus, 0x210, data, 0);
+        bdpriv_bdplus_event(dec->bdplus, 0x210, data, 0);
     }
 }

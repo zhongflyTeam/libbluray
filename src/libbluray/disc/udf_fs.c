@@ -1,6 +1,6 @@
 /*
  * This file is part of libbluray
- * Copyright (C) 2015  Petri Hintukainen
+ * Copyright (C) 2015-2026  Petri Hintukainen
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -69,7 +69,7 @@ static int64_t _file_read(BD_FILE_H *file, uint8_t *buf, int64_t size)
     return udfread_file_read((UDFFILE*)file->internal, buf, size);
 }
 
-BD_FILE_H *udf_file_open(void *udf, const char *filename)
+BD_FILE_H *bdpriv_udf_file_open(void *udf, const char *filename)
 {
     BD_FILE_H *file = calloc(1, sizeof(BD_FILE_H));
     if (!file) {
@@ -121,7 +121,7 @@ static int _dir_read(BD_DIR_H *dir, BD_DIRENT *entry)
     return 0;
 }
 
-BD_DIR_H *udf_dir_open(void *udf, const char* dirname)
+BD_DIR_H *bdpriv_udf_dir_open(void *udf, const char* dirname)
 {
     BD_DIR_H *dir = calloc(1, sizeof(BD_DIR_H));
     if (!dir) {
@@ -246,9 +246,9 @@ static struct udfread_block_input *_stream_input(void *read_block_handle,
 }
 
 
-void *udf_image_open(const char *img_path,
-                     void *read_block_handle,
-                     int (*read_blocks)(void *handle, void *buf, int lba, int num_blocks))
+void *bdpriv_udf_image_open(const char *img_path,
+                            void *read_block_handle,
+                            int (*read_blocks)(void *handle, void *buf, int lba, int num_blocks))
 {
     udfread *udf = udfread_init();
     int result = -1;
@@ -292,12 +292,12 @@ void *udf_image_open(const char *img_path,
     return (void*)udf;
 }
 
-const char *udf_volume_id(void *udf)
+const char *bdpriv_udf_volume_id(void *udf)
 {
     return udfread_get_volume_id((udfread*)udf);
 }
 
-void udf_image_close(void *udf)
+void bdpriv_udf_image_close(void *udf)
 {
     udfread_close((udfread*)udf);
 }

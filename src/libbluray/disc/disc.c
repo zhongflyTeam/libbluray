@@ -1,6 +1,6 @@
 /*
  * This file is part of libbluray
- * Copyright (C) 2014-2017  Petri Hintukainen <phintuka@users.sourceforge.net>
+ * Copyright (C) 2014-2026  Petri Hintukainen <phintuka@users.sourceforge.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -328,16 +328,16 @@ BD_DISC *disc_open(const char *device_path,
     /* check if disc root directory can be opened. If not, treat it as device/image file. */
     BD_DIR_H *dp_img = device_path ? dir_open(device_path) : NULL;
     if (!dp_img) {
-        void *udf = udf_image_open(device_path, p_fs ? p_fs->fs_handle : NULL, p_fs ? p_fs->read_blocks : NULL);
+        void *udf = bdpriv_udf_image_open(device_path, p_fs ? p_fs->fs_handle : NULL, p_fs ? p_fs->read_blocks : NULL);
         if (!udf) {
             BD_DEBUG(DBG_FILE | DBG_CRIT, "failed opening UDF image %s\n", device_path);
         } else {
             p->fs_handle          = udf;
-            p->pf_fs_close        = udf_image_close;
-            p->pf_file_open_bdrom = udf_file_open;
-            p->pf_dir_open_bdrom  = udf_dir_open;
+            p->pf_fs_close        = bdpriv_udf_image_close;
+            p->pf_file_open_bdrom = bdpriv_udf_file_open;
+            p->pf_dir_open_bdrom  = bdpriv_udf_dir_open;
 
-            p->udf_volid = udf_volume_id(udf);
+            p->udf_volid = bdpriv_udf_volume_id(udf);
 
             /* root not accessible with stdio */
             X_FREE(p->disc_root);
@@ -348,7 +348,7 @@ BD_DISC *disc_open(const char *device_path,
     }
 
     struct dec_dev dev = { p->fs_handle, p->pf_file_open_bdrom, p, (file_openFp)disc_open_path, p->disc_root, device_path };
-    p->dec = dec_init(&dev, enc_info, keyfile_path, regs, psr_read, psr_write);
+    p->dec = bdpriv_dec_init(&dev, enc_info, keyfile_path, regs, psr_read, psr_write);
 
     return p;
 }
@@ -358,7 +358,7 @@ void disc_close(BD_DISC **pp)
     if (pp && *pp) {
         BD_DISC *p = *pp;
 
-        dec_close(&p->dec);
+        bdpriv_dec_close(&p->dec);
 
         if (p->pf_fs_close) {
             p->pf_fs_close(p->fs_handle);
@@ -607,7 +607,7 @@ static char *_properties_file(BD_DISC *p)
     /* get disc ID */
     if (p->dec) {
         id_type = 'A';
-        disc_id = dec_disc_id(p->dec);
+        disc_id = bdpriv_dec_disc_id(p->dec);
     }
     if (!disc_id) {
         id_type = 'P';
@@ -653,7 +653,7 @@ int disc_property_put(BD_DISC *p, const char *property, const char *val)
     }
 
     bd_mutex_lock(&p->properties_mutex);
-    result = properties_put(p->properties_file, property, val);
+    result = bdpriv_properties_put(p->properties_file, property, val);
     bd_mutex_unlock(&p->properties_mutex);
 
     return result;
@@ -668,7 +668,7 @@ char *disc_property_get(BD_DISC *p, const char *property)
     }
 
     bd_mutex_lock(&p->properties_mutex);
-    result = properties_get(p->properties_file, property);
+    result = bdpriv_properties_get(p->properties_file, property);
     bd_mutex_unlock(&p->properties_mutex);
 
     return result;
@@ -681,7 +681,7 @@ char *disc_property_get(BD_DISC *p, const char *property)
 static BD_FILE_H *_open_stream(BD_DISC *disc, BD_FILE_H *fp, const char *file)
 {
     if (disc->dec) {
-        BD_FILE_H *st = dec_open_stream(disc->dec, fp, atoi(file));
+        BD_FILE_H *st = bdpriv_dec_open_stream(disc->dec, fp, atoi(file));
         if (st) {
             return st;
         }
@@ -730,7 +730,7 @@ BD_FILE_H *disc_open_path_dec(BD_DISC *p, const char *rel_path)
 const uint8_t *disc_get_data(BD_DISC *disc, int type)
 {
     if (disc->dec) {
-        return dec_data(disc->dec, type);
+        return bdpriv_dec_data(disc->dec, type);
     }
     if (type == 0x1000) {
         /* this shouldn't cause any extra optical disc access */
@@ -749,13 +749,13 @@ void disc_event(BD_DISC *disc, uint32_t event, uint32_t param)
     if (disc && disc->dec) {
         switch (event) {
             case DISC_EVENT_START:
-                dec_start(disc->dec, param);
+                bdpriv_dec_start(disc->dec, param);
                 return;
             case DISC_EVENT_TITLE:
-                dec_title(disc->dec, param);
+                bdpriv_dec_title(disc->dec, param);
                 return;
             case DISC_EVENT_APPLICATION:
-                dec_application(disc->dec, param);
+                bdpriv_dec_application(disc->dec, param);
                 return;
         }
     }

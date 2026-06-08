@@ -1,6 +1,6 @@
 /*
  * This file is part of libbluray
- * Copyright (C) 2015  Petri Hintukainen
+ * Copyright (C) 2015-2026  Petri Hintukainen
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,13 +25,13 @@
 struct bd_file_s;
 struct bd_dir_s;
 
-BD_PRIVATE void *udf_image_open(const char *img_path,
-                                void *read_block_handle,
-                                 int (*read_blocks)(void *handle, void *buf, int lba, int num_blocks));
-BD_PRIVATE void  udf_image_close(void *udf);
+BD_PRIVATE void *bdpriv_udf_image_open(const char *img_path,
+                                       void *read_block_handle,
+                                       int (*read_blocks)(void *handle, void *buf, int lba, int num_blocks));
+BD_PRIVATE void  bdpriv_udf_image_close(void *udf);
 
-BD_PRIVATE const char       *udf_volume_id(void *udf);
-BD_PRIVATE struct bd_file_s *udf_file_open(void *udf, const char *filename);
-BD_PRIVATE struct bd_dir_s  *udf_dir_open(void *udf, const char* dirname);
+BD_PRIVATE const char       *bdpriv_udf_volume_id(void *udf);
+BD_PRIVATE struct bd_file_s *bdpriv_udf_file_open(void *udf, const char *filename);
+BD_PRIVATE struct bd_dir_s  *bdpriv_udf_dir_open(void *udf, const char* dirname);
 
 #endif /* _BD_UDF_FS_H_ */

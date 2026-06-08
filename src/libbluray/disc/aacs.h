@@ -1,6 +1,6 @@
 /*
  * This file is part of libbluray
- * Copyright (C) 2013-2015  VideoLAN
+ * Copyright (C) 2013-2026  VideoLAN
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -29,19 +29,19 @@ typedef struct bd_file_s * (*AACS_FILE_OPEN2)(void *handle, const char* filename
 
 typedef struct bd_aacs BD_AACS;
 
-BD_PRIVATE int  libaacs_required(void *h, int (*have_file)(void *, const char *, const char *));
-BD_PRIVATE BD_AACS *libaacs_load(int force_mmbd);
-BD_PRIVATE int  libaacs_open(BD_AACS *p, const char *device,
-                             void *file_open_handle, AACS_FILE_OPEN2 file_open_fp,
-                             const char *keyfile_path);
-BD_PRIVATE void libaacs_unload(BD_AACS **p);
+BD_PRIVATE int  bdpriv_aacs_required(void *h, int (*have_file)(void *, const char *, const char *));
+BD_PRIVATE BD_AACS *bdpriv_aacs_load(int force_mmbd);
+BD_PRIVATE int  bdpriv_aacs_open(BD_AACS *p, const char *device,
+                                 void *file_open_handle, AACS_FILE_OPEN2 file_open_fp,
+                                 const char *keyfile_path);
+BD_PRIVATE void bdpriv_aacs_unload(BD_AACS **p);
 
-BD_PRIVATE void libaacs_select_title(BD_AACS *p, uint32_t title);
-BD_PRIVATE int  libaacs_decrypt_unit(BD_AACS *p, uint8_t *buf);
-BD_PRIVATE int  libaacs_decrypt_bus(BD_AACS *p, uint8_t *buf);
+BD_PRIVATE void bdpriv_aacs_select_title(BD_AACS *p, uint32_t title);
+BD_PRIVATE int  bdpriv_aacs_decrypt_unit(BD_AACS *p, uint8_t *buf);
+BD_PRIVATE int  bdpriv_aacs_decrypt_bus(BD_AACS *p, uint8_t *buf);
 
-BD_PRIVATE uint32_t libaacs_get_mkbv(BD_AACS *p);
-BD_PRIVATE int      libaacs_get_bec_enabled(BD_AACS *p);
+BD_PRIVATE uint32_t bdpriv_aacs_get_mkbv(BD_AACS *p);
+BD_PRIVATE int      bdpriv_aacs_get_bec_enabled(BD_AACS *p);
 
 #define BD_AACS_DISC_ID            1
 #define BD_AACS_MEDIA_VID          2
@@ -52,7 +52,7 @@ BD_PRIVATE int      libaacs_get_bec_enabled(BD_AACS *p);
 #define BD_AACS_CONTENT_CERT_ID    7
 #define BD_AACS_BDJ_ROOT_CERT_HASH 8
 
-BD_PRIVATE const uint8_t *libaacs_get_aacs_data(BD_AACS *p, int type);
+BD_PRIVATE const uint8_t *bdpriv_aacs_get_aacs_data(BD_AACS *p, int type);
 
 
 #endif /* _BD_LIBAACS_H_ */

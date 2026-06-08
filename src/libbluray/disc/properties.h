@@ -1,6 +1,6 @@
 /*
  * This file is part of libbluray
- * Copyright (C) 2017  Petri Hintukainen <phintuka@users.sourceforge.net>
+ * Copyright (C) 2017-2026  Petri Hintukainen <phintuka@users.sourceforge.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,7 @@
  * @param val  value for property
  * @return 0 on success, -1 on error
  */
-BD_PRIVATE int properties_put(const char *file, const char *property, const char *val);
+BD_PRIVATE int bdpriv_properties_put(const char *file, const char *property, const char *val);
 
 /**
  *
@@ -49,7 +49,7 @@ BD_PRIVATE int properties_put(const char *file, const char *property, const char
  * @param property  property name
  * @return property value or NULL
  */
-BD_PRIVATE char *properties_get(const char *file, const char *property);
+BD_PRIVATE char *bdpriv_properties_get(const char *file, const char *property);
 
 
 #endif /* _BD_PROPERTIES_H_ */
