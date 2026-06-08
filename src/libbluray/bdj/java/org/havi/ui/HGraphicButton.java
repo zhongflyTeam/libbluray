@@ -96,12 +96,7 @@ public class HGraphicButton extends HIcon implements HActionable {
     }
 
     public void processHActionEvent(HActionEvent evt) {
-        int state = getInteractionState();
-        int newState = actionHelper.processHActionEvent(evt);
-
-        if (state != newState) {
-            setInteractionState(newState);
-        }
+        actionHelper.processHActionEvent(evt);
     }
 
     public String getActionCommand() {

@@ -96,10 +96,7 @@ public final class HActionableHelper {
      * @param evt The HActionEvent to process
      * @return The current interaction state (unchanged by action events)
      */
-    public int processHActionEvent(HActionEvent evt) {
-        // Get current state - action events don't change the state
-        int state = hVisible.getInteractionState();
-
+    public void processHActionEvent(HActionEvent evt) {
         // Play action sound
         if (actionSound != null) {
             actionSound.play();
@@ -109,8 +106,6 @@ public final class HActionableHelper {
         if (hActionListener != null) {
             hActionListener.actionPerformed(evt);
         }
-
-        return state;
     }
 
     /**
