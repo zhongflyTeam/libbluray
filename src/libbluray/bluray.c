@@ -25,6 +25,7 @@
 
 #include "bluray-version.h"
 #include "bluray.h"
+#include "player_settings.h"
 #include "bluray_internal.h"
 #include "keys.h"
 #include "register.h"

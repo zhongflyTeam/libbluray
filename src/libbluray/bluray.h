@@ -758,14 +758,6 @@ typedef enum {
     BLURAY_PLAYER_JAVA_HOME                    = 0x202, /**< Location of JRE. String. Default: NULL (autodetect). */
 } bd_player_setting;
 
-/** Player User Operation (UO) restriction mask enforcement level. */
-typedef enum {
-    BLURAY_PLAYER_SETTING_UO_RESTRICTION_DISABLED  =  0, /**< Executes all UOs unconditionally. May break the playback. */
-    BLURAY_PLAYER_SETTING_UO_RESTRICTION_RELAXED   =  5, /**< Allows most UOs, performs some sanity checks to reduce playback issues. */
-    BLURAY_PLAYER_SETTING_UO_RESTRICTION_SAFE      = 10, /**< Mostly compliant, however allows some UOs which should not cause playback issues. */
-    BLURAY_PLAYER_SETTING_UO_RESTRICTION_COMPLIANT = 20, /**< Compliant UO restriction enforcement. */
-} bd_player_setting_uo_restriction_level;
-
 /**
  *
  *  Update player setting
