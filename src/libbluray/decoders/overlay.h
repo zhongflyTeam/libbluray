@@ -1,6 +1,6 @@
 /*
  * This file is part of libbluray
- * Copyright (C) 2010-2017  Petri Hintukainen <phintuka@users.sourceforge.net>
+ * Copyright (C) 2010-2026  Petri Hintukainen <phintuka@users.sourceforge.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -38,7 +38,7 @@ extern "C" {
 #endif
 
 /** Version number of the interface described in this file. */
-#define BD_OVERLAY_INTERFACE_VERSION 2
+#define BD_OVERLAY_INTERFACE_VERSION 3
 
 /**
  * Overlay plane
@@ -46,6 +46,7 @@ extern "C" {
 typedef enum {
     BD_OVERLAY_PG = 0,  /**< Presentation Graphics plane */
     BD_OVERLAY_IG = 1,  /**< Interactive Graphics plane (on top of PG plane) */
+    BD_OVERLAY_BG = 2,  /**< Background Graphics plane (behind video). Since libbluray 1.5.0. */
 } bd_overlay_plane_e;
 
 /*
@@ -212,7 +213,7 @@ typedef struct bd_argb_buffer_s {
      * - buffer can be replaced in overlay callback or lock().
      */
 
-    uint32_t *buf[4]; /**< [0] - PG plane, [1] - IG plane. [2], [3] reserved for stereoscopic overlay. */
+    uint32_t *buf[6]; /**< [0] - PG plane, [1] - IG plane, [2] - Background plane. [3..5] reserved for stereoscopic overlay. */
 
     /* size of buffers
      * - Set by application
@@ -231,7 +232,7 @@ typedef struct bd_argb_buffer_s {
         uint16_t y0; /**< top-left y coordinate */
         uint16_t x1; /**< bottom-down x coordinate  */
         uint16_t y1; /**< bottom-down y coordinate */
-    } dirty[2]; /**< [0] - PG plane, [1] - IG plane */
+    } dirty[3]; /**< [0] - PG plane, [1] - IG plane, [2] - Background plane */
 
 } BD_ARGB_BUFFER;
 
