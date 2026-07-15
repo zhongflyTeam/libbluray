@@ -1,4 +1,15 @@
-2026-01-xx: Version 1.4.1
+2026-07-14: Version 1.5.0
+- Expose dynamic range, color space, cr_flag and HDR10+ flags in stream info
+- Expose chapter names in title info
+- list_titles: report the number of Dolby Vision tracks
+- BD-J: Implement HAVI text and graphic look & feel components
+- BD-J: Implement navigable and actionable HAVI components
+- BD-J: Fix disabled components being hidden and vertical text alignment
+- BD-J: Lazy-load .bdjo title files for faster startup
+- BD-J: Add S3D and UHD stream types
+- Build: remove the java9 Meson option
+
+2026-01-26: Version 1.4.1
 - Fix linking on Windows with Freetype enabled
 - Improve compilation with MSVC
 - Cleaning and improvements in Meson build files
