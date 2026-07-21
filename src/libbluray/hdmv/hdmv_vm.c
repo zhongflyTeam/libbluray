@@ -1134,7 +1134,7 @@ static int _hdmv_step(HDMV_VM *p)
                 BD_DEBUG(DBG_HDMV|DBG_CRIT, "missing operand in BRANCH/JUMP opcode 0x%08x\n", *(uint32_t*)insn);
             }
             switch (insn->cmp_opt) {
-                case INSN_BC: p->pc += !!(dst & ~src); break;
+                case INSN_BC: p->pc += !!(src & ~dst); break;
                 case INSN_EQ: p->pc += !(dst == src); break;
                 case INSN_NE: p->pc += !(dst != src); break;
                 case INSN_GE: p->pc += !(dst >= src); break;
