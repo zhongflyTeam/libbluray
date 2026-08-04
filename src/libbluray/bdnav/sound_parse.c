@@ -197,7 +197,7 @@ static SOUND_DATA *_sound_parse(BD_FILE_H *fp)
 
     for (i = 0; i < data->num_sounds; i++) {
 
-        if (bs_seek_byte(&bs, data_start + data_offsets[i]) < 0) {
+        if (bs_seek_byte(&bs, (int64_t)data_start + data_offsets[i]) < 0) {
             BD_DEBUG(DBG_NAV | DBG_CRIT, "error reading samples for sound %d\n", i);
             data->sounds[i].num_frames = 0;
             continue;
