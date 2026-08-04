@@ -24,7 +24,7 @@ import java.io.Serializable;
 public class NPTRate implements Serializable {
 
     // should only be called internally
-    public NPTRate(int numerator, int denominator) {
+    NPTRate(int numerator, int denominator) {
         this.numerator = numerator;
         this.denominator = denominator;
     }
