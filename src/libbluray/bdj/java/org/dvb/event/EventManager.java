@@ -37,6 +37,9 @@ public class EventManager implements ResourceServer {
 
     private static final Object instanceLock = new Object();
 
+    protected EventManager() {
+    }
+
     public static EventManager getInstance() {
         synchronized (instanceLock) {
             if (instance == null)
