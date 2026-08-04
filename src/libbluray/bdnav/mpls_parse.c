@@ -681,10 +681,12 @@ _clean_subpath(MPLS_SUB *sp)
 {
     int ii;
 
-    for (ii = 0; ii < sp->sub_playitem_count; ii++) {
-        _clean_subplayitem(&sp->sub_play_item[ii]);
+    if (sp->sub_play_item != NULL) {
+        for (ii = 0; ii < sp->sub_playitem_count; ii++) {
+            _clean_subplayitem(&sp->sub_play_item[ii]);
+        }
+        X_FREE(sp->sub_play_item);
     }
-    X_FREE(sp->sub_play_item);
 }
 
 static int
