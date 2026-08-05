@@ -559,6 +559,11 @@ clpi_access_point(const CLPI_CL *cl, uint32_t pkt, int next, int angle_change, u
     int start, end;
     int ref;
 
+    if (cpi->num_stream_pid < 1 || !cpi->entry) {
+        *time = 0;
+        return 0;
+    }
+
     // Assumes that there is only one pid of interest
     entry = &cpi->entry[0];
 
