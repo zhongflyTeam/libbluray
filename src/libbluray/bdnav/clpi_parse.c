@@ -426,7 +426,8 @@ clpi_find_stc_spn(const CLPI_CL *cl, uint8_t stc_id)
 
     for (ii = 0; ii < cl->sequence.num_atc_seq; ii++) {
         atc = &cl->sequence.atc_seq[ii];
-        if (stc_id < atc->offset_stc_id + atc->num_stc_seq) {
+        if (stc_id >= atc->offset_stc_id &&
+            stc_id < atc->offset_stc_id + atc->num_stc_seq) {
             return atc->stc_seq[stc_id - atc->offset_stc_id].spn_stc_start;
         }
     }
