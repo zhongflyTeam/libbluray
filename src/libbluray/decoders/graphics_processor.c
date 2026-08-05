@@ -159,9 +159,15 @@ static int _join_segment_fragments(struct pes_buffer_s *p)
 
     /* check sequence descriptor - is segment complete ? */
 
+    if (p->len < sd_pos + 1) {
+        /* invalid, incomplete header */
+        BD_DEBUG(DBG_DECODE|DBG_CRIT, "Missing header in segment 0x%02x, len=%u\n", type, p->len);
+        return 1;
+    }
+
     BD_PG_SEQUENCE_DESCRIPTOR sd;
     BITBUFFER bb;
-    bb_init(&bb, p->buf + sd_pos, 3);
+    bb_init(&bb, p->buf + sd_pos, 1);
     pg_decode_sequence_descriptor(&bb, &sd);
 
     if (sd.last_in_seq) {
@@ -176,7 +182,14 @@ static int _join_segment_fragments(struct pes_buffer_s *p)
     PES_BUFFER *next;
     while (NULL != (next = _find_segment_by_idv(p->next, p->buf[0], id_pos, p->buf + id_pos, id_len))) {
 
-        bb_init(&bb, next->buf + sd_pos, 3);
+        if (next->len < sd_pos + 1) {
+            /* invalid, incomplete header */
+            BD_DEBUG(DBG_DECODE|DBG_CRIT, "Missing header in segment 0x%02x, len=%u\n", type, next->len);
+            pes_buffer_remove(&p, next);
+            continue;
+        }
+
+        bb_init(&bb, next->buf + sd_pos, 1);
         pg_decode_sequence_descriptor(&bb, &sd);
 
         if (next->len > data_pos /* at least one byte of payload */) {
