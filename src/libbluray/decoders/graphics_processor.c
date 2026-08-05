@@ -179,7 +179,9 @@ static int _join_segment_fragments(struct pes_buffer_s *p)
         bb_init(&bb, next->buf + sd_pos, 3);
         pg_decode_sequence_descriptor(&bb, &sd);
 
-        _join_fragments(p, next, data_pos);
+        if (next->len > data_pos /* at least one byte of payload */) {
+            _join_fragments(p, next, data_pos);
+        }
 
         pes_buffer_remove(&p, next);
 
