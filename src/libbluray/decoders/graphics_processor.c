@@ -102,7 +102,7 @@ static PES_BUFFER *_find_segment_by_idv(PES_BUFFER *p,
                                         uint8_t seg_type, unsigned idv_pos,
                                         uint8_t *idv, unsigned idv_len)
 {
-    while (p && (p->buf[0] != seg_type || memcmp(p->buf + idv_pos, idv, idv_len))) {
+    while (p && (p->buf[0] != seg_type || p->len < idv_pos + idv_len || memcmp(p->buf + idv_pos, idv, idv_len))) {
         p = p->next;
     }
     return p;
