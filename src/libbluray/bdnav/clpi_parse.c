@@ -464,6 +464,13 @@ clpi_lookup_spn(const CLPI_CL *cl, uint32_t timestamp, int before, uint8_t stc_i
     // Assumes that there is only one pid of interest
     entry = &cpi->entry[0];
 
+    if (entry->num_ep_fine < 1) {
+        if (before) {
+            return 0;
+        }
+        return cl->clip.num_source_packets;
+    }
+
     // Use sequence info to find spn_stc_start before doing
     // PTS search. The spn_stc_start defines the point in
     // the EP map to start searching.
