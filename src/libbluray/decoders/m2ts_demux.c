@@ -180,9 +180,17 @@ static int _parse_pes(PES_BUFFER *p, uint8_t *buf, unsigned len)
         }
 
         if (pts_exists) {
+            if (hdr_len < 14) {
+                BD_DEBUG(DBG_DECODE, "invalid BDAV TS (PES header too short for PTS)\n");
+                return -1;
+            }
             p->pts = _parse_timestamp(buf + 9);
         }
         if (dts_exists) {
+            if (hdr_len < 19) {
+                BD_DEBUG(DBG_DECODE, "invalid BDAV TS (PES header too short for DTS)\n");
+                return -1;
+            }
             p->dts = _parse_timestamp(buf + 14);
         }
     }
