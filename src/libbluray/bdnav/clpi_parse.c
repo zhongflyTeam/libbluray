@@ -338,6 +338,12 @@ _parse_ep_map_stream(BITSTREAM *bits, CLPI_EP_MAP_ENTRY *ee)
     }
     for (ii = 0; ii < ee->num_ep_coarse; ii++) {
         coarse[ii].ref_ep_fine_id = bs_read(bits, 18);
+        if (coarse[ii].ref_ep_fine_id >= ee->num_ep_fine) {
+            BD_DEBUG(DBG_HDMV | DBG_CRIT, "clpi_parse: invalid EP fine reference %u\n", coarse[ii].ref_ep_fine_id);
+            if (ee->num_ep_fine > 0) {
+                coarse[ii].ref_ep_fine_id = ee->num_ep_fine - 1;
+            }
+        }
         coarse[ii].pts_ep         = bs_read(bits, 14);
         coarse[ii].spn_ep         = bs_read(bits, 32);
     }
