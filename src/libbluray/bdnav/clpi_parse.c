@@ -609,7 +609,9 @@ clpi_access_point(const CLPI_CL *cl, uint32_t pkt, int next, int angle_change, u
         ii++;
         jj = 0;
     } else if (spn != pkt && !next) {
-        jj--;
+        if (jj > 0) {
+            jj--;
+        }
     }
     if (ii == entry->num_ep_coarse) {
         *time = 0;
