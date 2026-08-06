@@ -896,7 +896,7 @@ const NAV_CLIP* nav_mark_search(const NAV_TITLE *title, unsigned mark,
         return NULL;
     }
 
-    if (mark > title->mark_list.count) {
+    if (mark >= title->mark_list.count) {
         clip = &title->clip_list.clip[0];
         *clip_pkt = clip->start_pkt;
         *out_pkt = clip->title_pkt;
