@@ -552,14 +552,14 @@ _fill_mark(const NAV_TITLE *title, NAV_MARK *mark, int entry)
     }
 
     if (title->clip_list.count) {
-    clip = &title->clip_list.clip[mark->clip_ref];
-    if (clip->cl != NULL && mark->clip_ref < title->pl->list_count) {
-        mark->clip_pkt = clpi_lookup_spn(clip->cl, plm->time, 1,
-            title->pl->play_item[mark->clip_ref].clip[clip->angle].stc_id);
-    } else {
-        mark->clip_pkt = clip->start_pkt;
-    }
-    mark->title_pkt = clip->title_pkt + mark->clip_pkt - clip->start_pkt;
+        clip = &title->clip_list.clip[mark->clip_ref];
+        if (clip->cl != NULL && mark->clip_ref < title->pl->list_count) {
+            mark->clip_pkt = clpi_lookup_spn(clip->cl, plm->time, 1,
+                    title->pl->play_item[mark->clip_ref].clip[clip->angle].stc_id);
+        } else {
+            mark->clip_pkt = clip->start_pkt;
+        }
+        mark->title_pkt = clip->title_pkt + mark->clip_pkt - clip->start_pkt;
     }
     mark->clip_time = plm->time;
 
