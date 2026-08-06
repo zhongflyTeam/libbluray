@@ -549,6 +549,9 @@ done:
         }
         jj = entry->coarse[ii].ref_ep_fine_id;
     }
+    if (jj < 0) {
+        jj = 0;
+    }
     spn = (entry->coarse[ii].spn_ep & ~0x1FFFF) + entry->fine[jj].spn_ep;
     return spn;
 }
