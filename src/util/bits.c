@@ -74,6 +74,16 @@ static int _bs_read_at( BITSTREAM *bs, int64_t off )
     return _bs_read(bs);
 }
 
+static void _bs_refill( BITSTREAM *bs )
+{
+    int left = bs->bb.i_left;
+    bs->pos = bs->pos + (bs->bb.p - bs->bb.p_start);
+    file_seek(bs->fp, bs->pos, SEEK_SET);
+    bs->size = file_read(bs->fp, bs->buf, BF_BUF_SIZE);
+    bb_init(&bs->bb, bs->buf, bs->size);
+    bs->bb.i_left = left;
+}
+
 int bs_init( BITSTREAM *bs, BD_FILE_H *fp )
 {
     int64_t size = file_size(fp);;
@@ -220,7 +230,6 @@ uint32_t bb_read( BITBUFFER *bb, int i_count )
 
 uint32_t bs_read( BITSTREAM *bs, int i_count )
 {
-    int left;
     int bytes;
 
     if (i_count > 32) {
@@ -230,12 +239,7 @@ uint32_t bs_read( BITSTREAM *bs, int i_count )
     bytes = (i_count + 7) >> 3;
 
     if (bs->bb.p + bytes >= bs->bb.p_end) {
-        bs->pos = bs->pos + (bs->bb.p - bs->bb.p_start);
-        left = bs->bb.i_left;
-        file_seek(bs->fp, bs->pos, SEEK_SET);
-        bs->size = file_read(bs->fp, bs->buf, BF_BUF_SIZE);
-        bb_init(&bs->bb, bs->buf, bs->size);
-        bs->bb.i_left = left;
+        _bs_refill(bs);
     }
     return bb_read(&bs->bb, i_count);
 }
@@ -253,16 +257,10 @@ void bb_skip( BITBUFFER *bb, size_t i_count )
 
 void bs_skip( BITSTREAM *bs, size_t i_count )
 {
-    int left;
     size_t bytes = (i_count + 7) >> 3;
 
     if (bs->bb.p + bytes >= bs->bb.p_end) {
-        bs->pos = bs->pos + (bs->bb.p - bs->bb.p_start);
-        left = bs->bb.i_left;
-        file_seek(bs->fp, bs->pos, SEEK_SET);
-        bs->size = file_read(bs->fp, bs->buf, BF_BUF_SIZE);
-        bb_init(&bs->bb, bs->buf, bs->size);
-        bs->bb.i_left = left;
+        _bs_refill(bs);
     }
     bb_skip(&bs->bb, i_count);
 }
