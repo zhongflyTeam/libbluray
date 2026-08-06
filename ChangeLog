@@ -1,3 +1,16 @@
+2026-08-XX: Version 1.5.1
+- Fix out-of-bounds write in graphics processor on invalid input
+- Fix possible buffer overread when parsing PTS/DTS in m2ts demuxer
+- Fix NULL dereference in playlist subpath cleanup
+- Fix chapter and playmark search range checks
+- Fix invalid memory access with out-of-range angles on multi-angle discs
+- Harden clip info (CLPI) parsing against out-of-range indexes and empty tables
+- Harden RLE decoding against integer overflow and oversized allocations
+- Detect seek/read failures in the bitstream reader
+- Avoid undefined behaviour in HDMV VM shifts and sound data parsing
+- BD-J: Fix DSMCCObject unload condition
+- BD-J: Restrict visibility of EventManager and NPTRate constructors
+
 2026-07-14: Version 1.5.0
 - Expose dynamic range, color space, cr_flag and HDR10+ flags in stream info
 - Expose chapter names in title info
