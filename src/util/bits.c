@@ -28,6 +28,7 @@
 
 #include "file/file.h"
 #include "util/logging.h"
+#include "util/macro.h"
 
 #include <stdio.h>  // SEEK_*
 
@@ -184,6 +185,11 @@ uint32_t bb_read( BITBUFFER *bb, int i_count )
     int      i_shr;
     uint32_t i_result = 0;
 
+    if (i_count > 32) {
+        BD_ASSERT(i_count <= 32);
+        i_count = 32;
+    }
+
     while( i_count > 0 ) {
 
         if( bb->p >= bb->p_end ) {
@@ -215,7 +221,13 @@ uint32_t bb_read( BITBUFFER *bb, int i_count )
 uint32_t bs_read( BITSTREAM *bs, int i_count )
 {
     int left;
-    int bytes = (i_count + 7) >> 3;
+    int bytes;
+
+    if (i_count > 32) {
+        BD_ASSERT(i_count <= 32);
+        i_count = 32;
+    }
+    bytes = (i_count + 7) >> 3;
 
     if (bs->bb.p + bytes >= bs->bb.p_end) {
         bs->pos = bs->pos + (bs->bb.p - bs->bb.p_start);
