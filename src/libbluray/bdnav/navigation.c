@@ -743,6 +743,10 @@ NAV_TITLE* nav_title_open(BD_DISC *disc, const char *playlist, unsigned angle)
     strncpy(title->name, playlist, 11);
     title->name[10] = '\0';
     title->angle_count = 0;
+    if (angle > 8) {
+        // invalid angle
+        angle = 0;
+    }
     title->angle = angle;
     title->pl = mpls_get(disc, playlist);
     if (title->pl == NULL) {
