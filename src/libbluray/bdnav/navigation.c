@@ -849,7 +849,7 @@ const NAV_CLIP* nav_chapter_search(const NAV_TITLE *title, unsigned chapter,
         return NULL;
     }
 
-    if (chapter > title->chap_list.count) {
+    if (chapter >= title->chap_list.count) {
         clip = &title->clip_list.clip[0];
         *clip_pkt = clip->start_pkt;
         *out_pkt = clip->title_pkt;
