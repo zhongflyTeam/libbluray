@@ -1,4 +1,4 @@
-2026-08-XX: Version 1.5.1
+2026-08-31: Version 1.5.1
 - Fix out-of-bounds write in graphics processor on invalid input
 - Fix possible buffer overread when parsing PTS/DTS in m2ts demuxer
 - Fix NULL dereference in playlist subpath cleanup
@@ -7,6 +7,7 @@
 - Harden clip info (CLPI) parsing against out-of-range indexes and empty tables
 - Harden RLE decoding against integer overflow and oversized allocations
 - Detect seek/read failures in the bitstream reader
+- Fix branch condition (BC) instruction in HDMV VM
 - Avoid undefined behaviour in HDMV VM shifts and sound data parsing
 - BD-J: Fix DSMCCObject unload condition
 - BD-J: Restrict visibility of EventManager and NPTRate constructors
