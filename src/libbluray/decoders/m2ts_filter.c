@@ -52,6 +52,9 @@ struct m2ts_filter_s
     int64_t  out_pts;
     uint32_t pat_packets; /* how many packets to search for PAT (seeked pat_packets packets before the actual seek point) */
     uint8_t  pat_seen;
+
+    int64_t  last_pcr;    /* previous PCR base (90kHz), -1 if none seen since open/seek */
+    uint8_t  out_reached; /* PCR has advanced past out_pts: nothing left to present in this clip */
 };
 
 M2TS_FILTER *m2ts_filter_init(int64_t in_pts, int64_t out_pts,
@@ -66,6 +69,7 @@ M2TS_FILTER *m2ts_filter_init(int64_t in_pts, int64_t out_pts,
 
         p->in_pts   = in_pts;
         p->out_pts  = out_pts;
+        p->last_pcr = -1;
         p->wipe_pid = calloc(num_audio + num_video + num_ig + num_pg + 1, sizeof(uint16_t));
         p->pass_pid = calloc(num_audio + num_video + num_ig + num_pg + 1, sizeof(uint16_t));
         if (!p->pass_pid || !p->wipe_pid) {
@@ -199,6 +203,46 @@ void m2ts_filter_seek(M2TS_FILTER *p, uint32_t pat_packets, int64_t in_pts)
     p->in_pts   = in_pts;
     p->pat_seen = 0;
     p->pat_packets = pat_packets;
+    p->last_pcr = -1;
+    p->out_reached = 0;
+}
+
+/*
+ * Detect the PCR running past the OUT time.
+ *
+ * Some clips are much longer than the play item that references them (ex. a 5 second
+ * warning card backed by a 2 minute clip). ES packets after OUT time are wiped, but the
+ * clip would still be delivered - and paced by the application - up to its last packet.
+ * Once PCR has passed OUT time every remaining ES packet has PTS > OUT, so the rest of
+ * the clip can be skipped.
+ * Only a continuous crossing is accepted, to ignore STC discontinuities inside the clip.
+ */
+static void _check_pcr(M2TS_FILTER *p, const uint8_t *buf)
+{
+    const uint8_t *ts = buf + 4; /* TS packet, after TP_extra_header */
+
+    unsigned af_exists = ts[3] & 0x20;
+    unsigned af_length = ts[4];
+    unsigned pcr_flag  = ts[5] & 0x10;
+
+    if (!af_exists || af_length < 7 || !pcr_flag) {
+        return;
+    }
+
+    /* program_clock_reference_base: 33 bits, 90 kHz. The extension is not needed. */
+    const uint8_t *base = ts + 6;
+    int64_t pcr = ((int64_t)base[0] << 25) |
+                  ((int64_t)base[1] << 17) |
+                  ((int64_t)base[2] <<  9) |
+                  ((int64_t)base[3] <<  1) |
+                  ((int64_t)base[4] >>  7);
+
+    if (p->last_pcr >= 0 && p->last_pcr <= p->out_pts &&
+        pcr > p->out_pts && pcr - p->last_pcr < 90000) {
+        M2TS_TRACE("PCR %" PRId64 " passed OUT timestamp %" PRId64 "\n", pcr, p->out_pts);
+        p->out_reached = 1;
+    }
+    p->last_pcr = pcr;
 }
 
 static int _filter_es_pts(M2TS_FILTER *p, const uint8_t *buf, uint16_t pid)
@@ -289,6 +333,9 @@ int m2ts_filter(M2TS_FILTER *p, uint8_t *buf)
         if (pid < HDMV_PID_VIDEO) {
             /* pass PMT, PCR, SIT */
             /*M2TS_TRACE("NOT Wiping pid 0x%04x (< 0x1011)\n", pid);*/
+            if (pid == HDMV_PID_PCR && p->out_pts >= 0) {
+                _check_pcr(p, buf);
+            }
             continue;
         }
 #if 0
@@ -315,6 +362,10 @@ int m2ts_filter(M2TS_FILTER *p, uint8_t *buf)
     }
 
     /*result = !!(p->after ? p->wipe_pid[0] : p->pass_pid[0]);*/
+
+    if (p->out_reached) {
+        result = 1;
+    }
 
     return result;
 }

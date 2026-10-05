@@ -86,6 +86,7 @@ typedef struct {
 
     /* */
     uint8_t         eof_hit;
+    uint8_t         out_hit;   /* PCR passed play item OUT time: rest of the clip can be skipped */
     uint8_t         encrypted_block_cnt;
     uint8_t         seek_flag;  /* used to fine-tune first read after seek */
 
@@ -661,6 +662,7 @@ static int _open_m2ts(BLURAY *bd, BD_STREAM *st)
     st->clip_pos = (uint64_t)st->clip->start_pkt * 192;
     st->clip_block_pos = (st->clip_pos / 6144) * 6144;
     st->eof_hit = 0;
+    st->out_hit = 0;
     st->encrypted_block_cnt = 0;
 
     if (st->fp) {
@@ -740,6 +742,7 @@ static int _validate_unit(BLURAY *bd, BD_STREAM *st, uint8_t *buf)
     }
 
     st->eof_hit = 0;
+    st->out_hit = 0;
     st->encrypted_block_cnt = 0;
     return 1;
 }
@@ -794,6 +797,8 @@ static int _read_block(BLURAY *bd, BD_STREAM *st, uint8_t *buf)
                     if (result < 0) {
                         m2ts_filter_close(&st->m2ts_filter);
                         BD_DEBUG(DBG_BLURAY | DBG_CRIT, "m2ts filter error\n");
+                    } else if (result > 0) {
+                        st->out_hit = 1;
                     }
                 }
 
@@ -2061,6 +2066,16 @@ static int _bd_read(BLURAY *bd, unsigned char *buf, int len)
                         size = (unsigned int)(angle_pos - st->clip_pos);
                     }
                 }
+            }
+            if (st->out_hit && st->int_buf_off == 6144 && clip_pkt < st->clip->end_pkt) {
+                /* everything left in this clip is after play item OUT time */
+                uint64_t skip = (uint64_t)(st->clip->end_pkt - clip_pkt) * 192;
+                BD_DEBUG(DBG_BLURAY | DBG_STREAM, "OUT time reached, skipping %u packets at end of clip %s\n",
+                         st->clip->end_pkt - clip_pkt, st->clip->name);
+                st->clip_pos += skip;
+                bd->s_pos    += skip;
+                st->out_hit   = 0;
+                clip_pkt      = st->clip->end_pkt;
             }
             if (st->int_buf_off == 6144 || clip_pkt >= st->clip->end_pkt) {
 
