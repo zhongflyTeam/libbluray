@@ -293,8 +293,11 @@ public class BDJLoader {
                     logger.info("Autostart xlet " + i + ": " + appTable[i].getInitialClass());
                     proxys[i].start();
                 } else if (code == AppEntry.PRESENT) {
-                    logger.info("Init xlet " + i + ": " + appTable[i].getInitialClass());
-                    proxys[i].init();
+                    /* "Present" applications are listed in the applications database but are not
+                     * loaded until something launches them. Leave the proxy in its current state
+                     * (NOT_LOADED for a new application): applications that launch another one
+                     * through AppProxy.start() may first check that it has not been loaded yet. */
+                    logger.info("Present xlet " + i + ": " + appTable[i].getInitialClass());
                 } else {
                     logger.info("Unsupported xlet code (" +code+") xlet " + i + ": " + appTable[i].getInitialClass());
                 }
