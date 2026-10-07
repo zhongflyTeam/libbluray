@@ -27,6 +27,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import java.io.BDFileSystem;
 import org.videolan.bdjo.AppCache;
@@ -160,6 +165,108 @@ class VFSCache {
         Libbluray.cacheBdRomFile(relPath, dstPath);
 
         logger.info("cached " + relPath);
+
+        if (!isJarVerifiable(dstPath)) {
+            logger.error("Signature of " + relPath + " can not be verified. Using it as unsigned JAR.");
+            removeJarSignature(dstPath);
+        }
+    }
+
+    /*
+     * Check that JVM accepts the JAR signature.
+     *
+     * JVM refuses to load any class from a JAR with a broken signature block
+     * (SecurityException from the JAR verifier). Such application is not
+     * authenticated, but it is still an (unsigned) application.
+     */
+    private static boolean isJarVerifiable(String path) {
+        JarFile jar = null;
+        try {
+            jar = new JarFile(path, true);
+            Enumeration entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = (JarEntry)entries.nextElement();
+                if (!entry.isDirectory() && !entry.getName().startsWith("META-INF/")) {
+                    /* opening first entry initializes the verifier and parses signature block */
+                    jar.getInputStream(entry).close();
+                    break;
+                }
+            }
+        } catch (SecurityException e) {
+            return false;
+        } catch (IOException e) {
+            /* not a signature problem */
+        } finally {
+            if (jar != null) {
+                try {
+                    jar.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean isSignatureEntry(String name) {
+        name = name.toUpperCase();
+        if (!name.startsWith("META-INF/") || name.indexOf('/', 9) >= 0) {
+            return false;
+        }
+        return name.startsWith("META-INF/SIG-") || name.endsWith(".SF") ||
+            name.endsWith(".RSA") || name.endsWith(".DSA") || name.endsWith(".EC");
+    }
+
+    /* Rewrite cached JAR without signature files */
+    private void removeJarSignature(String path) {
+        String tmpPath = path + ".unsigned";
+        JarFile jar = null;
+        ZipOutputStream out = null;
+        boolean ok = false;
+        byte[] buffer = new byte[64*1024];
+
+        try {
+            jar = new JarFile(path, false);
+            out = new ZipOutputStream(new FileOutputStream(tmpPath));
+            Enumeration entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                JarEntry entry = (JarEntry)entries.nextElement();
+                if (isSignatureEntry(entry.getName())) {
+                    continue;
+                }
+                out.putNextEntry(new ZipEntry(entry.getName()));
+                if (!entry.isDirectory()) {
+                    InputStream in = jar.getInputStream(entry);
+                    try {
+                        int length;
+                        while ((length = in.read(buffer)) > 0) {
+                            out.write(buffer, 0, length);
+                        }
+                    } finally {
+                        in.close();
+                    }
+                }
+                out.closeEntry();
+            }
+            ok = true;
+        } catch (IOException e) {
+            logger.error("Error removing signature from " + path + ": " + e);
+        } finally {
+            try {
+                if (out != null)
+                    out.close();
+                if (jar != null)
+                    jar.close();
+            } catch (IOException e) {
+                ok = false;
+            }
+        }
+
+        File tmp = new File(tmpPath);
+        File dst = new File(path);
+        if (!ok || !dst.delete() || !tmp.renameTo(dst)) {
+            logger.error("Error replacing " + path);
+            tmp.delete();
+        }
     }
 
     private void copyJarDir(String name, String[] files) {
