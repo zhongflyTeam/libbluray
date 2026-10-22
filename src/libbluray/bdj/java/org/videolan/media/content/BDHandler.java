@@ -194,12 +194,7 @@ public abstract class BDHandler implements Player, ServiceContentHandler {
     }
 
     public Time getMediaTime() {
-        synchronized (this) {
-            if (state == Started)
-                return new Time((baseMediaTime + (getTimeBase().getNanoseconds() - baseTime)) / 1000000000.0d);
-            else
-                return new Time(baseMediaTime / 1000000000.0d);
-        }
+        return new Time(getMediaNanoseconds() / 1000000000.0d);
     }
 
     public long getMediaNanoseconds() {
